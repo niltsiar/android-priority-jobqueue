@@ -1,5 +1,4 @@
 apply plugin: 'com.android.library'
-apply plugin: 'com.vanniktech.maven.publish'
 
 dependencies {
     testImplementation 'junit:junit:4.12'
