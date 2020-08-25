@@ -6,13 +6,12 @@ import com.birbit.android.jobqueue.network.NetworkUtil;
 import com.birbit.android.jobqueue.test.TestBase;
 import com.birbit.android.jobqueue.test.jobs.DummyJob;
 import com.birbit.android.jobqueue.test.timer.MockTimer;
-
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.*;
-import org.robolectric.annotation.Config;
+import org.robolectric.RobolectricTestRunner;
+
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 @RunWith(RobolectricTestRunner.class)
 
@@ -25,15 +24,11 @@ public class JobParamsTest extends TestBase {
 
         JobHolder j2 = JobQueueTestBase.createNewJobHolder(new Params(1).groupBy("blah"), mockTimer);
         assertThat("group param should be understood properly", j2.getGroupId(), equalTo("blah"));
-        assertThat("require network param should be understood properly",
-                j2.getRequiredNetworkType(), equalTo(NetworkUtil.DISCONNECTED));
+        assertThat("require network param should be understood properly", j2.getRequiredNetworkType(), equalTo(NetworkUtil.DISCONNECTED));
 
-        JobHolder j3 = JobQueueTestBase.createNewJobHolder(new Params(1).persist(), mockTimer);
-        assertThat("persist param should be understood properly", j3.persistent, equalTo(true));
-
-        JobHolder j4 = JobQueueTestBase.createNewJobHolder(new Params(1).setPersistent(false)
-                .setRequiresNetwork(false).setGroupId(null).setSingleId(null), mockTimer);
-        assertThat("persist param should be understood properly", j4.persistent, equalTo(false));
+        JobHolder j4 = JobQueueTestBase.createNewJobHolder(new Params(1).setRequiresNetwork(false)
+                                                                        .setGroupId(null)
+                                                                        .setSingleId(null), mockTimer);
         assertThat("require network param should be understood properly", j4.getRequiredNetworkType(), equalTo(NetworkUtil.DISCONNECTED));
 
         assertThat("group param should be understood properly", j4.groupId, nullValue());
@@ -54,7 +49,7 @@ public class JobParamsTest extends TestBase {
         assertThat("100 ms deadline", j7.shouldCancelOnDeadline(), is(true));
 
         JobHolder j13 = JobQueueTestBase.createNewJobHolder(new Params(1).overrideDeadlineToCancelInMs(200), mockTimer);
-        assertThat("100 ms deadline", j13.getDeadlineNs(), is(200000150L));
-        assertThat("100 ms deadline", j7.shouldCancelOnDeadline(), is(true));
+        assertThat("200 ms deadline", j13.getDeadlineNs(), is(200000150L));
+        assertThat("200 ms deadline", j13.shouldCancelOnDeadline(), is(true));
     }
 }

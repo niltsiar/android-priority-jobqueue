@@ -2,7 +2,6 @@ package com.birbit.android.jobqueue.test.jobmanager;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
 import com.birbit.android.jobqueue.CancelReason;
 import com.birbit.android.jobqueue.Job;
 import com.birbit.android.jobqueue.JobManager;
@@ -11,29 +10,16 @@ import com.birbit.android.jobqueue.Params;
 import com.birbit.android.jobqueue.RetryConstraint;
 import com.birbit.android.jobqueue.TagConstraint;
 import com.birbit.android.jobqueue.callback.JobManagerCallback;
-
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.MatcherAssert;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.annotation.Config;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyInt;
-import static org.mockito.Mockito.doCallRealMethod;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @RunWith(RobolectricTestRunner.class)
 
@@ -167,53 +153,6 @@ public class CallbackTest extends JobManagerTestBase {
         verify(callback).onJobAdded(job);
         verify(callback, times(1)).onJobRun(job, JobManagerCallback.RESULT_CANCEL_CANCELLED_WHILE_RUNNING);
         verify(callback).onJobCancelled(job, true, null);
-    }
-
-    @Test
-    public void successPersistent() throws Throwable {
-        JobManagerCallback callback = mock(JobManagerCallback.class);
-        final Job job = new PersistentDummyJob();
-        final JobManager jobManager = createJobManager();
-        jobManager.addCallback(callback);
-        waitUntilAJobIsDone(jobManager, new WaitUntilCallback() {
-            @Override
-            public void run() {
-                jobManager.addJob(job);
-            }
-
-            @Override
-            public void assertJob(Job job) {
-
-            }
-        });
-        verify(callback).onJobAdded(any(PersistentDummyJob.class));
-        verify(callback).onJobRun(any(PersistentDummyJob.class), eq(JobManagerCallback.RESULT_SUCCEED));
-    }
-
-    public static class PersistentDummyJob extends Job {
-        public PersistentDummyJob() {
-            super(new Params(1).persist());
-        }
-
-        @Override
-        public void onAdded() {
-
-        }
-
-        @Override
-        public void onRun() throws Throwable {
-
-        }
-
-        @Override
-        protected void onCancel(@CancelReason int cancelReason, @Nullable Throwable throwable) {
-
-        }
-
-        @Override
-        protected RetryConstraint shouldReRunOnThrowable(@NonNull Throwable throwable, int runCount, int maxRunCount) {
-            throw new RuntimeException("not expected to arrive here");
-        }
     }
 
     public static class PublicJob extends Job {

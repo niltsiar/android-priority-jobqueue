@@ -6,15 +6,12 @@ import com.birbit.android.jobqueue.Params;
 import com.birbit.android.jobqueue.TagConstraint;
 import com.birbit.android.jobqueue.config.Configuration;
 import com.birbit.android.jobqueue.test.jobs.DummyJob;
-
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
-import org.robolectric.annotation.Config;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -31,7 +28,8 @@ public class CancelWhileRunningWithGroupsTest extends JobManagerTestBase {
                         .minConsumerCount(5).timer(mockTimer));
         DummyJobWithLatches nonPersistentJob = new DummyJobWithLatches(0, new Params(1).addTags("dummyTag").groupBy("group1"));
         jobManager.addJob(nonPersistentJob);
-        DummyJobWithLatches persistentJob = new DummyJobWithLatches(0, new Params(1).addTags("dummyTag").groupBy("group2").persist());
+        DummyJobWithLatches persistentJob = new DummyJobWithLatches(0, new Params(1).addTags("dummyTag")
+                                                                                    .groupBy("group2"));
         jobManager.addJob(persistentJob);
         assertThat("both jobs should start", startLatches[0].await(2, TimeUnit.SECONDS), is(true));
         final CancelResult[] cancelResults = new CancelResult[1];
@@ -54,8 +52,10 @@ public class CancelWhileRunningWithGroupsTest extends JobManagerTestBase {
         assertThat("no jobs should be canceled", cancelResults[0].getCancelledJobs().size(), is(0));
         assertThat("both jobs should fail to cancel", cancelResults[0].getFailedToCancel().size(), is(2));
 
-        jobManager.addJob(new DummyJobWithLatches(1, new Params(1).addTags("dummyTag").groupBy("group1")));
-        jobManager.addJob(new DummyJobWithLatches(1, new Params(1).addTags("dummyTag").groupBy("group2").persist()));
+        jobManager.addJob(new DummyJobWithLatches(1, new Params(1).addTags("dummyTag")
+                                                                  .groupBy("group1")));
+        jobManager.addJob(new DummyJobWithLatches(1, new Params(1).addTags("dummyTag")
+                                                                  .groupBy("group2")));
         assertThat("new jobs with canceled groups should start", startLatches[1].await(10, TimeUnit.SECONDS), is(true));
         endLatches[1].countDown();
         endLatches[1].countDown();

@@ -3,14 +3,11 @@ package com.birbit.android.jobqueue;
 import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
 import com.birbit.android.jobqueue.log.JqLog;
 import com.birbit.android.jobqueue.network.NetworkUtil;
 import com.birbit.android.jobqueue.timer.Timer;
-
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -20,26 +17,30 @@ import java.util.UUID;
  * Base class for all of your jobs.
  */
 @SuppressWarnings("deprecation")
-abstract public class Job implements Serializable {
-    private static final long serialVersionUID = 3L;
+abstract public class Job {
     @SuppressWarnings("WeakerAccess")
     public static final int DEFAULT_RETRY_LIMIT = 20;
     static final String SINGLE_ID_TAG_PREFIX = "job-single-id:";
     // set either in constructor or by the JobHolder
-    /**package**/ private transient String id;
+    /**
+     * package
+     **/
+    private transient String id;
     // values set from params
     @NetworkUtil.NetworkStatus
     transient int requiredNetworkType;
     // values set after job is covered by a JobHolder
     private transient String groupId;
-    private transient boolean persistent;
     private transient Set<String> readonlyTags;
 
     private transient int currentRunCount;
-    /**package**/ transient int priority;
-    private transient long delayInMs;
-    private transient long deadlineInMs;
-    private transient boolean cancelOnDeadline;
+    /**
+     * package
+     **/
+    transient int priority;
+    private final transient long delayInMs;
+    private final transient long deadlineInMs;
+    private final transient boolean cancelOnDeadline;
     /*package*/ transient volatile boolean cancelled;
 
     // set when job is loaded
@@ -54,7 +55,6 @@ abstract public class Job implements Serializable {
     protected Job(Params params) {
         this.id = UUID.randomUUID().toString();
         this.requiredNetworkType = params.requiredNetworkType;
-        this.persistent = params.isPersistent();
         this.groupId = params.getGroupId();
         this.priority = params.getPriority();
         this.delayInMs = Math.max(0, params.getDelayMs());
@@ -133,19 +133,9 @@ abstract public class Job implements Serializable {
         id = holder.id;
         groupId = holder.groupId;
         priority = holder.getPriority();
-        this.persistent = holder.persistent;
         readonlyTags = holder.tags;
         requiredNetworkType = holder.requiredNetworkType;
         sealed = true; //  deserialized jobs are sealed
-    }
-
-    /**
-     * Whether we should add this job to disk or non-persistent queue
-     *
-     * @return True if this job should be persistent between app restarts
-     */
-    public final boolean isPersistent() {
-        return persistent;
     }
 
     /**

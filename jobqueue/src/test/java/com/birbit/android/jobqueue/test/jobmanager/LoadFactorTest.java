@@ -1,36 +1,31 @@
 package com.birbit.android.jobqueue.test.jobmanager;
 
+import android.annotation.SuppressLint;
+import androidx.annotation.NonNull;
 import com.birbit.android.jobqueue.Constraint;
 import com.birbit.android.jobqueue.Job;
-import com.birbit.android.jobqueue.JobHolder;
 import com.birbit.android.jobqueue.JobManager;
 import com.birbit.android.jobqueue.JobQueue;
 import com.birbit.android.jobqueue.Params;
 import com.birbit.android.jobqueue.QueueFactory;
 import com.birbit.android.jobqueue.config.Configuration;
 import com.birbit.android.jobqueue.inMemoryQueue.SimpleInMemoryPriorityQueue;
-import com.birbit.android.jobqueue.persistentQueue.sqlite.SqliteJobQueue;
 import com.birbit.android.jobqueue.test.jobs.DummyJob;
-
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.assertThat;
-
-import android.annotation.SuppressLint;
-import androidx.annotation.NonNull;
-
-import org.hamcrest.*;
-import org.junit.After;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.*;
-import org.robolectric.annotation.Config;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.junit.After;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 @RunWith(RobolectricTestRunner.class)
 
@@ -47,12 +42,6 @@ public class LoadFactorTest extends JobManagerTestBase {
                 .minConsumerCount(1)
                 .loadFactor(3)
                 .queueFactory(new QueueFactory() {
-                    @Override
-                    public JobQueue createPersistentQueue(Configuration configuration,
-                            long sessionId) {
-                        return new SqliteJobQueue(configuration, sessionId, new SqliteJobQueue
-                                .JavaSerializer());
-                    }
 
                     @Override
                     public JobQueue createNonPersistent(Configuration configuration,

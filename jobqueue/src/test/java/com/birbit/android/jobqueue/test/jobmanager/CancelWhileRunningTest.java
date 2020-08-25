@@ -8,15 +8,12 @@ import com.birbit.android.jobqueue.TagConstraint;
 import com.birbit.android.jobqueue.config.Configuration;
 import com.birbit.android.jobqueue.log.JqLog;
 import com.birbit.android.jobqueue.test.jobs.DummyJob;
-
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
-import org.robolectric.annotation.Config;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -25,11 +22,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 public class CancelWhileRunningTest extends JobManagerTestBase {
     @Test
-    public void testCancelBeforeRunning() throws InterruptedException {
-        JobManager jobManager = createJobManager(
-                new Configuration.Builder(RuntimeEnvironment.application)
-                        .minConsumerCount(5)
-                        .timer(mockTimer));
+    public void testCancelBeforeRunning() throws
+                                          InterruptedException {
+        JobManager jobManager = createJobManager(new Configuration.Builder(RuntimeEnvironment.application).minConsumerCount(5)
+                                                                                                          .timer(mockTimer));
         JobWithEndLatch nonPersistent1 = new JobWithEndLatch(new Params(0).addTags("dummyTag"), true);
         JobWithEndLatch nonPersistent2 = new JobWithEndLatch(new Params(0).addTags("dummyTag"), false);
         DummyJob persistentJob1 = new PersistentJobWithEndLatch(new Params(0).addTags("dummyTag"), false);
@@ -60,24 +56,22 @@ public class CancelWhileRunningTest extends JobManagerTestBase {
             }
         }, TagConstraint.ANY, "dummyTag");
 
-        assertThat("result should not arrive until existing jobs finish",
-                cancelLatch.await(4, TimeUnit.SECONDS), is(false));
+        assertThat("result should not arrive until existing jobs finish", cancelLatch.await(4, TimeUnit.SECONDS), is(false));
         onEndLatch.countDown();
         nonPersistent1.onEndLatch.countDown();
         nonPersistent2.onEndLatch.countDown();
-        assertThat("when jobs in question are finished, cancel callback should be triggered",
-                cancelLatch.await(10, TimeUnit.SECONDS), is(true));
+        assertThat("when jobs in question are finished, cancel callback should be triggered", cancelLatch.await(10, TimeUnit.SECONDS), is(true));
         final CancelResult result = resultHolder[0];
         JqLog.d("cancelled jobs %s", result.getCancelledJobs());
         JqLog.d("failed to cancel %s", result.getFailedToCancel());
-        assertThat("two jobs should be cancelled", result.getCancelledJobs().size(), is(2));
-        assertThat("two jobs should fail to cancel", result.getFailedToCancel().size(), is(2));
+        assertThat("two jobs should be cancelled", result.getCancelledJobs()
+                                                         .size(), is(2));
+        assertThat("two jobs should fail to cancel", result.getFailedToCancel()
+                                                           .size(), is(2));
 
         for (Job j : result.getCancelledJobs()) {
             FailingJob job = (FailingJob) j;
-            if (!job.isPersistent()) {
-                assertThat("job is still added", job.getOnAddedCnt(), is(1));
-            }
+            assertThat("job is still added", job.getOnAddedCnt(), is(1));
             if (job.fail) {
                 assertThat("job is cancelled", job.getOnCancelCnt(), is(1));
             } else {
@@ -87,9 +81,7 @@ public class CancelWhileRunningTest extends JobManagerTestBase {
 
         for (Job j : result.getFailedToCancel()) {
             FailingJob job = (FailingJob) j;
-            if (!job.isPersistent()) {
-                assertThat("job is still added", job.getOnAddedCnt(), is(1));
-            }
+            assertThat("job is still added", job.getOnAddedCnt(), is(1));
             if (job.fail) {
                 assertThat("job is cancelled", job.getOnCancelCnt(), is(1));
             } else {
@@ -97,10 +89,10 @@ public class CancelWhileRunningTest extends JobManagerTestBase {
             }
         }
 
-        assertThat("second cancel should not cancel anything",
-                resultHolder[1].getCancelledJobs().size(), is(0));
-        assertThat("second cancel should not cancel anything",
-                resultHolder[1].getFailedToCancel().size(), is(0));
+        assertThat("second cancel should not cancel anything", resultHolder[1].getCancelledJobs()
+                                                                              .size(), is(0));
+        assertThat("second cancel should not cancel anything", resultHolder[1].getFailedToCancel()
+                                                                              .size(), is(0));
     }
 
     public static CountDownLatch onStartLatch = new CountDownLatch(2);
@@ -109,11 +101,12 @@ public class CancelWhileRunningTest extends JobManagerTestBase {
     public static class PersistentJobWithEndLatch extends FailingJob {
 
         public PersistentJobWithEndLatch(Params params, boolean fail) {
-            super(params.persist(), fail);
+            super(params, fail);
         }
 
         @Override
-        public void onRun() throws Throwable {
+        public void onRun() throws
+                            Throwable {
             JqLog.d("starting running %s", this);
             onStartLatch.countDown();
             onEndLatch.await();
@@ -133,7 +126,8 @@ public class CancelWhileRunningTest extends JobManagerTestBase {
         }
 
         @Override
-        public void onRun() throws Throwable {
+        public void onRun() throws
+                            Throwable {
             JqLog.d("starting running %s", this);
             onStartLatch.countDown();
             onEndLatch.await();
@@ -156,7 +150,7 @@ public class CancelWhileRunningTest extends JobManagerTestBase {
 
         @Override
         public String toString() {
-            return getClass().getSimpleName() + "[" +id + "](" + System.identityHashCode(this) + ")";
+            return getClass().getSimpleName() + "[" + id + "](" + System.identityHashCode(this) + ")";
         }
     }
 }

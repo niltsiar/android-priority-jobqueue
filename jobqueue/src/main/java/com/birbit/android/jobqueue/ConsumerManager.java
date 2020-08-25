@@ -1,7 +1,6 @@
 package com.birbit.android.jobqueue;
 
 import androidx.annotation.NonNull;
-
 import com.birbit.android.jobqueue.config.Configuration;
 import com.birbit.android.jobqueue.log.JqLog;
 import com.birbit.android.jobqueue.messaging.Message;
@@ -17,7 +16,6 @@ import com.birbit.android.jobqueue.messaging.message.RunJobMessage;
 import com.birbit.android.jobqueue.messaging.message.RunJobResultMessage;
 import com.birbit.android.jobqueue.scheduling.SchedulerConstraint;
 import com.birbit.android.jobqueue.timer.Timer;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,7 +33,7 @@ import java.util.concurrent.ThreadFactory;
  */
 class ConsumerManager {
 
-    private List<Consumer> waitingConsumers = new ArrayList<>();
+    private final List<Consumer> waitingConsumers = new ArrayList<>();
 
     private final List<Consumer> consumers = new ArrayList<>();
 
@@ -316,9 +314,6 @@ class ConsumerManager {
 
     public boolean hasJobsWithSchedulerConstraint(SchedulerConstraint constraint) {
         for (JobHolder jobHolder : runningJobHolders.values()) {
-            if (!jobHolder.getJob().isPersistent()) {
-                continue;
-            }
             if(constraint.getNetworkStatus() >= jobHolder.requiredNetworkType) {
                 return true;
             }

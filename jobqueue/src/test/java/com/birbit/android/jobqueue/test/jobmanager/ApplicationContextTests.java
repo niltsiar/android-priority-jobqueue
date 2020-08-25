@@ -3,23 +3,19 @@ package com.birbit.android.jobqueue.test.jobmanager;
 import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
 import com.birbit.android.jobqueue.CancelReason;
 import com.birbit.android.jobqueue.Job;
 import com.birbit.android.jobqueue.JobManager;
 import com.birbit.android.jobqueue.Params;
 import com.birbit.android.jobqueue.RetryConstraint;
-
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.model.MultipleFailureException;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
-import org.robolectric.annotation.Config;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -37,17 +33,13 @@ public class ApplicationContextTests extends JobManagerTestBase {
 
     @Test
     public void getContextNonPersistent() throws InterruptedException, MultipleFailureException {
-        getContextTest(false);
+        getContextTest();
     }
 
-    @Test
-    public void getContextPersistent() throws InterruptedException, MultipleFailureException {
-        getContextTest(true);
-    }
-
-    public void getContextTest(boolean persistent)
-            throws InterruptedException, MultipleFailureException {
-        final ContextCheckJob addedJob = new ContextCheckJob(new Params(1).setPersistent(persistent));
+    public void getContextTest() throws
+                                 InterruptedException,
+                                 MultipleFailureException {
+        final ContextCheckJob addedJob = new ContextCheckJob(new Params(1));
         final JobManager jobManager = createJobManager();
         waitUntilAJobIsDone(jobManager, new WaitUntilCallback() {
             @Override

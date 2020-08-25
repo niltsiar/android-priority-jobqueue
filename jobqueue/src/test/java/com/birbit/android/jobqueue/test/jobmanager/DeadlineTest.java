@@ -2,7 +2,6 @@ package com.birbit.android.jobqueue.test.jobmanager;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
 import com.birbit.android.jobqueue.CancelReason;
 import com.birbit.android.jobqueue.Job;
 import com.birbit.android.jobqueue.JobManager;
@@ -10,18 +9,15 @@ import com.birbit.android.jobqueue.Params;
 import com.birbit.android.jobqueue.RetryConstraint;
 import com.birbit.android.jobqueue.config.Configuration;
 import com.birbit.android.jobqueue.network.NetworkUtil;
-
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.ParameterizedRobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
-import org.robolectric.annotation.Config;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -29,33 +25,26 @@ import static org.hamcrest.MatcherAssert.assertThat;
 @RunWith(ParameterizedRobolectricTestRunner.class)
 
 public class DeadlineTest extends JobManagerTestBase {
-    private final boolean persistent;
     private final boolean reqNetwork;
     private final boolean reqUnmeteredNetwork;
     private final long delay;
     private final boolean cancelOnDeadline;
 
-    public DeadlineTest(boolean persistent, boolean reqNetwork, boolean reqUnmeteredNetwork,
-                        long delay, boolean cancelOnDeadline) {
-        this.persistent = persistent;
+    public DeadlineTest(boolean reqNetwork, boolean reqUnmeteredNetwork, long delay, boolean cancelOnDeadline) {
         this.reqNetwork = reqNetwork;
         this.reqUnmeteredNetwork = reqUnmeteredNetwork;
         this.delay = delay;
         this.cancelOnDeadline = cancelOnDeadline;
     }
 
-    @ParameterizedRobolectricTestRunner.Parameters(name =
-            "persistent: {0} reqNetwork: {1} reqUnmetered: {2} delay: {3} cancelOnDeadline: {4}")
+    @ParameterizedRobolectricTestRunner.Parameters(name = "reqNetwork: {0} reqUnmetered: {1} delay: {2} cancelOnDeadline: {3}")
     public static List<Object[]> getParams() {
         List<Object[]> params = new ArrayList<>();
         for (long delay : new long[]{0, 10}) {
-            for (int i = 0; i < 16; i++) {
-                params.add(new Object[] {
-                        (i & 1) == 1, // persistent
-                        (i & 2) == 2, // reqNetwork
-                        (i & 4) == 4, // reqUnmeteredNetwork
-                        delay,
-                        (i & 8) == 8, // cancelOnDeadline
+            for (int i = 0; i < 8; i++) {
+                params.add(new Object[]{(i & 1) == 1, // reqNetwork
+                        (i & 2) == 2, // reqUnmeteredNetwork
+                        delay, (i & 4) == 4, // cancelOnDeadline
                 });
             }
         }
@@ -75,9 +64,9 @@ public class DeadlineTest extends JobManagerTestBase {
                         .networkUtil(networkUtil)
                         .timer(mockTimer));
         networkUtil.setNetworkStatus(NetworkUtil.DISCONNECTED);
-        Params params = new Params(0).setPersistent(persistent).setRequiresNetwork(reqNetwork)
-                .setRequiresUnmeteredNetwork(reqUnmeteredNetwork)
-                .delayInMs(delay);
+        Params params = new Params(0).setRequiresNetwork(reqNetwork)
+                                     .setRequiresUnmeteredNetwork(reqUnmeteredNetwork)
+                                     .delayInMs(delay);
         if (cancelOnDeadline) {
             params.overrideDeadlineToCancelInMs(200);
         } else {

@@ -7,7 +7,6 @@ import org.hamcrest.MatcherAssert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.annotation.Config;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 
@@ -18,11 +17,6 @@ public class AddedCountTest extends JobManagerTestBase {
     public void testAddedCount() throws Exception {
         testAddedCount(new DummyJob(new Params(0)));
 
-    }
-
-    @Test
-    public void testAddedCountPersistent() {
-        testAddedCount(new DummyJob(new Params(0).persist()));
     }
 
     private void testAddedCount(DummyJob dummyJob) {

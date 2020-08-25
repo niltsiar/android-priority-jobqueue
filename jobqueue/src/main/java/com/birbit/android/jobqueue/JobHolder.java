@@ -3,10 +3,8 @@ package com.birbit.android.jobqueue;
 import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
 import com.birbit.android.jobqueue.network.NetworkUtil;
 import com.birbit.android.jobqueue.timer.Timer;
-
 import java.util.Set;
 
 /**
@@ -52,7 +50,6 @@ public class JobHolder {
 
     private Long insertionOrder;
     public final String id;
-    public final boolean persistent;
     private int priority;
     public final String groupId;
     private int runCount;
@@ -64,17 +61,17 @@ public class JobHolder {
      * When job is created, Timer.nanoTime() is assigned to {@code createdNs} value so that we know
      * when job is created in relation to others
      */
-    private long createdNs;
+    private final long createdNs;
     private long runningSessionId;
     /* package */ int requiredNetworkType;
     /**
      * When we should ignore the constraints
      */
-    private long deadlineNs;
+    private final long deadlineNs;
     /**
      * What to do when deadline is reached
      */
-    private boolean cancelOnDeadline;
+    private final boolean cancelOnDeadline;
     transient final Job job;
     protected final Set<String> tags;
     private volatile boolean cancelled;
@@ -87,28 +84,36 @@ public class JobHolder {
     /**
      * Eventual exception thrown from the last execution of {@link Job#onRun}
      */
-    @Nullable private Throwable throwable;
+    @Nullable
+    private Throwable throwable;
 
     /**
-     * @param id               The ID of the Job
-     * @param persistent       Is the job persistent
-     * @param priority         Higher is better
-     * @param groupId          which group does this job belong to? default null
-     * @param runCount         Incremented each time job is fetched to run, initial value should be 0
-     * @param job              Actual job to run
-     * @param createdNs        System.nanotime
-     * @param delayUntilNs     System.nanotime value: when job can be run the very first time
-     * @param runningSessionId The running session id for the job
-     * @param tags             The tags of the Job
+     * @param id                  The ID of the Job
+     * @param priority            Higher is better
+     * @param groupId             which group does this job belong to? default null
+     * @param runCount            Incremented each time job is fetched to run, initial value should be 0
+     * @param job                 Actual job to run
+     * @param createdNs           System.nanotime
+     * @param delayUntilNs        System.nanotime value: when job can be run the very first time
+     * @param runningSessionId    The running session id for the job
+     * @param tags                The tags of the Job
      * @param requiredNetworkType The minimum type of network that is required to run this job
-     * @param deadlineNs       System.nanotime value: when the job will ignore its constraints
-     * @param cancelOnDeadline true if job should be cancelled when deadline is reached, false otherwise
+     * @param deadlineNs          System.nanotime value: when the job will ignore its constraints
+     * @param cancelOnDeadline    true if job should be cancelled when deadline is reached, false otherwise
      */
-    private JobHolder(String id, boolean persistent, int priority, String groupId, int runCount, Job job, long createdNs,
-                      long delayUntilNs, long runningSessionId, Set<String> tags,
-                      int requiredNetworkType, long deadlineNs, boolean cancelOnDeadline) {
+    private JobHolder(String id,
+            int priority,
+            String groupId,
+            int runCount,
+            Job job,
+            long createdNs,
+            long delayUntilNs,
+            long runningSessionId,
+            Set<String> tags,
+            int requiredNetworkType,
+            long deadlineNs,
+            boolean cancelOnDeadline) {
         this.id = id;
-        this.persistent = persistent;
         this.priority = priority;
         this.groupId = groupId;
         this.runCount = runCount;
@@ -124,15 +129,16 @@ public class JobHolder {
 
     /**
      * runs the job w/o throwing any exceptions
-     * @param currentRunCount The current run count of the job
      *
+     * @param currentRunCount The current run count of the job
      * @return RUN_RESULT
      */
     int safeRun(int currentRunCount, Timer timer) {
         return job.safeRun(this, currentRunCount, timer);
     }
 
-    @NonNull public String getId() {
+    @NonNull
+    public String getId() {
         return id;
     }
 
@@ -238,7 +244,7 @@ public class JobHolder {
 
     @Override
     public boolean equals(Object o) {
-        if(!(o instanceof JobHolder)) {
+        if (!(o instanceof JobHolder)) {
             return false;
         }
         JobHolder other = (JobHolder) o;
@@ -302,9 +308,7 @@ public class JobHolder {
         private int priority;
         private static final int FLAG_PRIORITY = 1;
         private String id;
-        private static final int FLAG_PERSISTENT = FLAG_PRIORITY << 1;
-        private boolean persistent;
-        private static final int FLAG_ID = FLAG_PERSISTENT << 1;
+        private static final int FLAG_ID = FLAG_PRIORITY << 1;
         private String groupId;
         private static final int FLAG_GROUP_ID = FLAG_ID << 1;
         private int runCount = 0;
@@ -334,6 +338,7 @@ public class JobHolder {
             providedFlags |= FLAG_PRIORITY;
             return this;
         }
+
         public Builder groupId(String groupId) {
             this.groupId = groupId;
             providedFlags |= FLAG_GROUP_ID;
@@ -348,12 +353,6 @@ public class JobHolder {
 
         public Builder runCount(int runCount) {
             this.runCount = runCount;
-            return this;
-        }
-
-        public Builder persistent(boolean persistent) {
-            this.persistent = persistent;
-            providedFlags |= FLAG_PERSISTENT;
             return this;
         }
 
@@ -380,15 +379,18 @@ public class JobHolder {
             providedFlags |= FLAG_CREATED_NS;
             return this;
         }
+
         public Builder delayUntilNs(long delayUntilNs) {
             this.delayUntilNs = delayUntilNs;
             providedFlags |= FLAG_DELAY_UNTIL;
             return this;
         }
+
         public Builder insertionOrder(long insertionOrder) {
             this.insertionOrder = insertionOrder;
             return this;
         }
+
         public Builder runningSessionId(long runningSessionId) {
             this.runningSessionId = runningSessionId;
             providedFlags |= FLAG_RUNNING_SESSION_ID;
@@ -411,8 +413,7 @@ public class JobHolder {
                 throw new IllegalArgumentException("must provide all required fields. your result:" + Long.toBinaryString(flagCheck));
             }
 
-            JobHolder jobHolder = new JobHolder(id, persistent, priority, groupId, runCount, job, createdNs,
-                    delayUntilNs, runningSessionId, tags, requiredNetworkType, deadlineNs, cancelOnDeadline);
+            JobHolder jobHolder = new JobHolder(id, priority, groupId, runCount, job, createdNs, delayUntilNs, runningSessionId, tags, requiredNetworkType, deadlineNs, cancelOnDeadline);
             if (insertionOrder != null) {
                 jobHolder.setInsertionOrder(insertionOrder);
             }

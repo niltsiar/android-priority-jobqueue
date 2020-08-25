@@ -1,5 +1,8 @@
 package com.birbit.android.jobqueue.test.jobmanager;
 
+import android.annotation.TargetApi;
+import android.os.Build;
+import androidx.annotation.NonNull;
 import com.birbit.android.jobqueue.Job;
 import com.birbit.android.jobqueue.JobManager;
 import com.birbit.android.jobqueue.JobStatus;
@@ -8,23 +11,18 @@ import com.birbit.android.jobqueue.callback.JobManagerCallbackAdapter;
 import com.birbit.android.jobqueue.config.Configuration;
 import com.birbit.android.jobqueue.network.NetworkUtil;
 import com.birbit.android.jobqueue.test.jobs.DummyJob;
-
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.*;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.*;
-import org.robolectric.annotation.Config;
-
-import android.annotation.TargetApi;
-import android.os.Build;
-import androidx.annotation.NonNull;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 @RunWith(RobolectricTestRunner.class)
 
@@ -40,10 +38,8 @@ public class JobStatusTest extends JobManagerTestBase {
                         .timer(mockTimer));
         jobManager.stop();
         List<Integer> networkRequiringJobIndices = new ArrayList<Integer>();
-        Job[] jobs = new Job[] {
-                new DummyJob(new Params(0)),
-                new DummyJob(new Params(0).persist()),
-                new DummyJob(new Params(0).persist().requireNetwork().addTags(REQ_NETWORK_TAG))
+        Job[] jobs = new Job[]{new DummyJob(new Params(0)), new DummyJob(new Params(0)), new DummyJob(new Params(0).requireNetwork()
+                                                                                                                   .addTags(REQ_NETWORK_TAG))
         };
         String[] ids = new String[jobs.length];
         networkRequiringJobIndices.add(2);
@@ -69,10 +65,6 @@ public class JobStatusTest extends JobManagerTestBase {
                 }
             }
         } while (exists);
-        for(boolean persistent : new boolean[]{true, false}) {
-            assertThat("job with unknown id should return as expected",
-                    jobManager.getJobStatus(unknownId), is(JobStatus.UNKNOWN));
-        }
 
         final CountDownLatch startLatch = new CountDownLatch(1), endLatch = new CountDownLatch(1);
         final DummyTwoLatchJob twoLatchJob = new DummyTwoLatchJob(new Params(0), startLatch, endLatch);
@@ -128,11 +120,9 @@ public class JobStatusTest extends JobManagerTestBase {
             assertThat("all jobs finished, states should be unknown", jobManager.getJobStatus(ids[i]), is(JobStatus.UNKNOWN));
         }
         final long SHORT_SLEEP = 2000;
-        Job[] delayedJobs = new Job[]{
-                new DummyJob(new Params(0).delayInMs(SHORT_SLEEP)),
-                new DummyJob(new Params(0).delayInMs(SHORT_SLEEP).persist()),
-                new DummyJob(new Params(0).delayInMs(SHORT_SLEEP * 10)),
-                new DummyJob(new Params(0).delayInMs(SHORT_SLEEP * 10).persist())};
+        Job[] delayedJobs = new Job[]{new DummyJob(new Params(0).delayInMs(SHORT_SLEEP)), new DummyJob(new Params(0).delayInMs(SHORT_SLEEP)), new DummyJob(
+                new Params(0).delayInMs(SHORT_SLEEP * 10)), new DummyJob(new Params(0).delayInMs(SHORT_SLEEP * 10))
+        };
         String[] delayedIds = new String[delayedJobs.length];
         long start = mockTimer.nanoTime();
         for(int i = 0; i < delayedJobs.length; i ++) {

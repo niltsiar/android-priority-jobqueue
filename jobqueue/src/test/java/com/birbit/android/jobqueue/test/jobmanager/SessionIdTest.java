@@ -6,13 +6,12 @@ import com.birbit.android.jobqueue.JobHolder;
 import com.birbit.android.jobqueue.JobManager;
 import com.birbit.android.jobqueue.Params;
 import com.birbit.android.jobqueue.test.jobs.DummyJob;
-
-import static org.hamcrest.CoreMatchers.*;
-import org.hamcrest.*;
+import org.hamcrest.MatcherAssert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.*;
-import org.robolectric.annotation.Config;
+import org.robolectric.RobolectricTestRunner;
+
+import static org.hamcrest.CoreMatchers.equalTo;
 
 @RunWith(RobolectricTestRunner.class)
 
@@ -22,7 +21,7 @@ public class SessionIdTest extends JobManagerTestBase {
         JobManager jobManager = createJobManager();
         Long sessionId = mockTimer.nanoTime(); //we know job manager uses this value :/
         jobManager.stop();
-        Job[] jobs = new Job[]{new DummyJob(new Params(0)), new DummyJob(new Params(0).persist())};
+        Job[] jobs = new Job[]{new DummyJob(new Params(0)), new DummyJob(new Params(0))};
         for (Job job : jobs) {
             jobManager.addJob(job);
         }

@@ -3,12 +3,12 @@ package com.birbit.android.jobqueue.test.jobmanager;
 import com.birbit.android.jobqueue.JobManager;
 import com.birbit.android.jobqueue.Params;
 import com.birbit.android.jobqueue.test.jobs.DummyJob;
-import static org.hamcrest.CoreMatchers.*;
-import org.hamcrest.*;
+import org.hamcrest.MatcherAssert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.*;
-import org.robolectric.annotation.Config;
+import org.robolectric.RobolectricTestRunner;
+
+import static org.hamcrest.CoreMatchers.equalTo;
 
 @RunWith(RobolectricTestRunner.class)
 
@@ -18,7 +18,7 @@ public class ClearTest extends JobManagerTestBase {
         JobManager jobManager = createJobManager();
         final int LIMIT = 20;
         for(int i = 0; i < LIMIT; i++) {
-            jobManager.addJob(new DummyJob(new Params(0).setPersistent(i % 2 == 1)));
+            jobManager.addJob(new DummyJob(new Params(0)));
         }
         jobManager.clear();
         MatcherAssert.assertThat("after clear, count should be 0", jobManager.count(), equalTo(0));

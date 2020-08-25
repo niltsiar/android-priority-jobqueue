@@ -2,7 +2,6 @@ package com.birbit.android.jobqueue;
 
 import com.birbit.android.jobqueue.log.JqLog;
 import com.birbit.android.jobqueue.network.NetworkUtil;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Set;
@@ -25,7 +24,7 @@ class CancelHandler {
         failedToCancel = new ArrayList<>();
         this.callback = callback;
     }
-    
+
     void query(JobManagerThread jobManagerThread, ConsumerManager consumerManager) {
         running = consumerManager.markJobsCancelled(tagConstraint, tags);
         Constraint queryConstraint = jobManagerThread.queryConstraint;
@@ -36,19 +35,11 @@ class CancelHandler {
         queryConstraint.setTags(tags);
         queryConstraint.setExcludeRunning(true);
         queryConstraint.setMaxNetworkType(NetworkUtil.UNMETERED);
-        Set<JobHolder> nonPersistentInQueue = jobManagerThread.nonPersistentJobQueue
-                .findJobs(queryConstraint);
-        Set<JobHolder> persistentInQueue = jobManagerThread.persistentJobQueue
-                .findJobs(queryConstraint);
+        Set<JobHolder> nonPersistentInQueue = jobManagerThread.nonPersistentJobQueue.findJobs(queryConstraint);
         for (JobHolder nonPersistent : nonPersistentInQueue) {
             nonPersistent.markAsCancelled();
             cancelled.add(nonPersistent);
             jobManagerThread.nonPersistentJobQueue.onJobCancelled(nonPersistent);
-        }
-        for (JobHolder persistent : persistentInQueue) {
-            persistent.markAsCancelled();
-            cancelled.add(persistent);
-            jobManagerThread.persistentJobQueue.onJobCancelled(persistent);
         }
     }
 
@@ -58,9 +49,6 @@ class CancelHandler {
                 jobHolder.onCancel(CancelReason.CANCELLED_WHILE_RUNNING);
             } catch (Throwable t) {
                 JqLog.e(t, "job's on cancel has thrown an exception. Ignoring...");
-            }
-            if (jobHolder.getJob().isPersistent()) {
-                jobManagerThread.persistentJobQueue.remove(jobHolder);
             }
         }
         if (callback != null) {
@@ -76,8 +64,7 @@ class CancelHandler {
             jobManagerThread.callbackManager.notifyCancelResult(result, callback);
         }
         for (JobHolder jobHolder : cancelled) {
-            jobManagerThread.callbackManager.notifyOnCancel(jobHolder.getJob(), true,
-                    jobHolder.getThrowable());
+            jobManagerThread.callbackManager.notifyOnCancel(jobHolder.getJob(), true, jobHolder.getThrowable());
         }
     }
 

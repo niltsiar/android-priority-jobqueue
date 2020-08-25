@@ -1,5 +1,8 @@
 package com.birbit.android.jobqueue.test.jobmanager;
 
+import android.annotation.TargetApi;
+import android.os.Build;
+import androidx.annotation.NonNull;
 import com.birbit.android.jobqueue.Job;
 import com.birbit.android.jobqueue.JobHolder;
 import com.birbit.android.jobqueue.JobManager;
@@ -8,23 +11,20 @@ import com.birbit.android.jobqueue.callback.JobManagerCallbackAdapter;
 import com.birbit.android.jobqueue.config.Configuration;
 import com.birbit.android.jobqueue.network.NetworkUtil;
 import com.birbit.android.jobqueue.test.jobs.DummyJob;
-
-import static org.hamcrest.CoreMatchers.*;
-import org.hamcrest.*;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.*;
-import org.robolectric.annotation.Config;
-
-import android.annotation.TargetApi;
-import android.os.Build;
-import androidx.annotation.NonNull;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.hamcrest.MatcherAssert;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 
 @RunWith(RobolectricTestRunner.class)
 
@@ -39,8 +39,8 @@ public class GroupingTest extends JobManagerTestBase {
         jobManager.stop();
         String jobId1 = addJob(jobManager, new DummyJob(new Params(0).groupBy("group1")));
         String jobId2 = addJob(jobManager, new DummyJob(new Params(0).groupBy("group1")));
-        String jobId3 = addJob(jobManager, new DummyJob(new Params(0).persist().groupBy("group2")));
-        String jobId4 = addJob(jobManager, new DummyJob(new Params(0).persist().groupBy("group1")));
+        String jobId3 = addJob(jobManager, new DummyJob(new Params(0).groupBy("group2")));
+        String jobId4 = addJob(jobManager, new DummyJob(new Params(0).groupBy("group1")));
         JobHolder nextJob = nextJob(jobManager);
         MatcherAssert.assertThat("next job should be the first job from group1", nextJob.getId(), equalTo(jobId1));
         JobHolder group2Job = nextJob(jobManager, Collections.singletonList("group1"));
@@ -48,8 +48,7 @@ public class GroupingTest extends JobManagerTestBase {
         removeJob(jobManager, nextJob);
         JobHolder group1NextJob = nextJob(jobManager, Arrays.asList("group2"));
         MatcherAssert.assertThat("after removing job from group 1, another job from group1 should be returned", group1NextJob.getId(), equalTo(jobId2));
-        MatcherAssert.assertThat("when jobs from both groups are running, no job should be returned from next job",
-                nextJob(jobManager, Arrays.asList("group1", "group2")), is(nullValue()));
+        MatcherAssert.assertThat("when jobs from both groups are running, no job should be returned from next job", nextJob(jobManager, Arrays.asList("group1", "group2")), is(nullValue()));
         removeJob(jobManager, group2Job);
         MatcherAssert.assertThat("even after group2 job is complete, no jobs should be returned"
                 + "since we only have group1 jobs left",
