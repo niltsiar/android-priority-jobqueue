@@ -90,7 +90,6 @@ public class SchedulerSimpleTestCase extends JobManagerTestBase {
 
         final JobManager jobManager = createJobManager(builder);
         Params params = new Params(1);
-        params.setPersistent(persistent);
         params.setRequiresNetwork(requireNetwork);
         params.setRequiresUnmeteredNetwork(requireUnmeteredNetwork);
         params.setDelayMs(delayInMs);

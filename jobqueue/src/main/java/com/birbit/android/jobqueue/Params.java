@@ -1,9 +1,7 @@
 package com.birbit.android.jobqueue;
 
 import androidx.annotation.Nullable;
-
 import com.birbit.android.jobqueue.network.NetworkUtil;
-
 import java.util.Collections;
 import java.util.HashSet;
 
@@ -26,8 +24,7 @@ public class Params {
     /* package */int requiredNetworkType = NetworkUtil.DISCONNECTED;
     private String groupId = null;
     private String singleId = null;
-    private boolean persistent = false;
-    private int priority;
+    private final int priority;
     private long delayMs;
     private HashSet<String> tags;
     private long deadlineMs = 0;
@@ -84,15 +81,6 @@ public class Params {
      */
     public Params singleInstanceBy(String singleId) {
         this.singleId = singleId;
-        return this;
-    }
-
-    /**
-     * Marks the job as persistent. Make sure your job is serializable.
-     * @return this
-     */
-    public Params persist() {
-        this.persistent = true;
         return this;
     }
 
@@ -163,16 +151,6 @@ public class Params {
      */
     public Params setSingleId(String singleId) {
         this.singleId = singleId;
-        return this;
-    }
-
-    /**
-     * convenience method to set whether {@link JobManager} should persist this job or not.
-     * @param persistent true|false
-     * @return this
-     */
-    public Params setPersistent(boolean persistent) {
-        this.persistent = persistent;
         return this;
     }
 
@@ -289,10 +267,6 @@ public class Params {
 
     public String getSingleId() {
         return singleId;
-    }
-
-    public boolean isPersistent() {
-        return persistent;
     }
 
     public int getPriority() {

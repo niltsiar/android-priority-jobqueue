@@ -111,7 +111,7 @@ public class RetryLogicTest extends JobManagerTestBase {
             }
         };
         canRun = true;
-        RetryJob job = new RetryJob(new Params(0).setPersistent(persistent));
+        RetryJob job = new RetryJob(new Params(0));
         job.retryLimit = 10;
         createJobManager().addJob(job);
         assertThat("", cancelLatch.await(4, TimeUnit.SECONDS), is(true));
@@ -137,16 +137,15 @@ public class RetryLogicTest extends JobManagerTestBase {
     public void testChangeDelayOfTheGroup(Boolean persistent) throws InterruptedException {
         final JobManager jobManager = createJobManager();
         canRun = true;
-        final RetryJob job1 = new RetryJob(new Params(2).setPersistent(Boolean.TRUE.equals(persistent)).groupBy("g1"));
+        final RetryJob job1 = new RetryJob(new Params(2).groupBy("g1"));
         job1.identifier = "job 1 id";
-        RetryJob job2 = new RetryJob(new Params(2).setPersistent(!Boolean.FALSE.equals(persistent)).groupBy("g1"));
+        RetryJob job2 = new RetryJob(new Params(2).groupBy("g1"));
         job2.identifier = "job 2 id";
         job1.retryLimit = 2;
         job2.retryLimit = 2;
         final String job1Id = job1.identifier;
         final String job2Id = job2.identifier;
-        final PersistableDummyJob postTestJob = new PersistableDummyJob(new Params(1)
-                .groupBy("g1").setPersistent(Boolean.TRUE.equals(persistent)));
+        final PersistableDummyJob postTestJob = new PersistableDummyJob(new Params(1).groupBy("g1"));
         final Semaphore jobsCanRun = new Semaphore(4);
         jobsCanRun.acquire(3);
         final Job[] unexpectedRun = new Job[1];
@@ -184,13 +183,10 @@ public class RetryLogicTest extends JobManagerTestBase {
             public void on(Job job, int cancelReason, Throwable throwable) {
                 JqLog.d("on cancel of job %s", job);
                 RetryJob retryJob = (RetryJob) job;
-                assertThat("Job should cancel only once",
-                        cancelTimes.containsKey(retryJob.identifier), is(false));
+                assertThat("Job should cancel only once", cancelTimes.containsKey(retryJob.identifier), is(false));
                 cancelTimes.put(retryJob.identifier, mockTimer.nanoTime());
-                if (!job.isPersistent() || postTestJob.isPersistent()) {
-                    if (dummyJobRunLatch.getCount() != 1) {
-                        lastJobRunOrder[0] = new Exception("the 3rd job should not run until others cancel fully");
-                    }
+                if (dummyJobRunLatch.getCount() != 1) {
+                    lastJobRunOrder[0] = new Exception("the 3rd job should not run until others cancel fully");
                 }
             }
         };
@@ -289,7 +285,7 @@ public class RetryLogicTest extends JobManagerTestBase {
     @TargetApi(Build.VERSION_CODES.GINGERBREAD)
     public void testChangeDelay(boolean persistent) throws InterruptedException {
         canRun = true;
-        RetryJob job = new RetryJob(new Params(1).setPersistent(persistent));
+        RetryJob job = new RetryJob(new Params(1));
         job.retryLimit = 2;
         retryProvider = new RetryProvider() {
             @Override
@@ -349,9 +345,9 @@ public class RetryLogicTest extends JobManagerTestBase {
     public void testChangePriorityAndObserveExecutionOrder(boolean persistent)
             throws InterruptedException {
         cancelLatch = new CountDownLatch(2);
-        RetryJob job1 = new RetryJob(new Params(10).setPersistent(persistent).groupBy("group"));
+        RetryJob job1 = new RetryJob(new Params(10).groupBy("group"));
         job1.identifier = "1";
-        RetryJob job2 = new RetryJob(new Params(5).setPersistent(persistent).groupBy("group"));
+        RetryJob job2 = new RetryJob(new Params(5).groupBy("group"));
         job2.identifier = "2";
         JobManager jobManager = createJobManager();
         jobManager.stop();
@@ -423,7 +419,7 @@ public class RetryLogicTest extends JobManagerTestBase {
                 assertThat("priority should be the expected value", job.getPriority(), is(priority.get()));
             }
         };
-        RetryJob retryJob = new RetryJob(new Params(priority.get()).setPersistent(persistent));
+        RetryJob retryJob = new RetryJob(new Params(priority.get()));
         retryJob.retryLimit = 3;
         canRun = true;
         onRunLatch = new CountDownLatch(3);
@@ -461,7 +457,7 @@ public class RetryLogicTest extends JobManagerTestBase {
                 cancelThrowable[0] = throwable;
             }
         };
-        RetryJob job = new RetryJob(new Params(1).setPersistent(persistent));
+        RetryJob job = new RetryJob(new Params(1));
         job.retryLimit = 3;
         onRunLatch = new CountDownLatch(3);
         createJobManager().addJob(job);
@@ -501,7 +497,7 @@ public class RetryLogicTest extends JobManagerTestBase {
                 return returnTrue ? RetryConstraint.RETRY : null;
             }
         };
-        RetryJob job = new RetryJob(new Params(1).setPersistent(persistent));
+        RetryJob job = new RetryJob(new Params(1));
         job.retryLimit = 3;
         onRunLatch = new CountDownLatch(3);
         createJobManager().addJob(job);

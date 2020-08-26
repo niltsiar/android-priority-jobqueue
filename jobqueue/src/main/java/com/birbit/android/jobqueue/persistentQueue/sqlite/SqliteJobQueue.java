@@ -1,5 +1,11 @@
 package com.birbit.android.jobqueue.persistentQueue.sqlite;
 
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteDoneException;
+import android.database.sqlite.SQLiteStatement;
+import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
 import com.birbit.android.jobqueue.Constraint;
 import com.birbit.android.jobqueue.Job;
 import com.birbit.android.jobqueue.JobHolder;
@@ -8,14 +14,6 @@ import com.birbit.android.jobqueue.JobQueue;
 import com.birbit.android.jobqueue.Params;
 import com.birbit.android.jobqueue.config.Configuration;
 import com.birbit.android.jobqueue.log.JqLog;
-
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteDoneException;
-import android.database.sqlite.SQLiteStatement;
-import androidx.annotation.NonNull;
-import androidx.annotation.VisibleForTesting;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -31,12 +29,12 @@ import java.util.Set;
  */
 public class SqliteJobQueue implements JobQueue {
     @SuppressWarnings("FieldCanBeLocal")
-    private DbOpenHelper dbOpenHelper;
+    private final DbOpenHelper dbOpenHelper;
     private final long sessionId;
-    private SQLiteDatabase db;
-    private SqlHelper sqlHelper;
-    private JobSerializer jobSerializer;
-    private FileStorage jobStorage;
+    private final SQLiteDatabase db;
+    private final SqlHelper sqlHelper;
+    private final JobSerializer jobSerializer;
+    private final FileStorage jobStorage;
     private final StringBuilder reusedStringBuilder = new StringBuilder();
     private final WhereQueryCache whereQueryCache;
 
@@ -44,8 +42,7 @@ public class SqliteJobQueue implements JobQueue {
         this.sessionId = sessionId;
         jobStorage = new FileStorage(configuration.getAppContext(), "jobs_" + configuration.getId());
         whereQueryCache = new WhereQueryCache(sessionId);
-        dbOpenHelper = new DbOpenHelper(configuration.getAppContext(),
-                configuration.isInTestMode() ? null : ("db_" + configuration.getId()));
+        dbOpenHelper = new DbOpenHelper(configuration.getAppContext(), configuration.isInTestMode() ? null : ("db_" + configuration.getId()));
         db = dbOpenHelper.getWritableDatabase();
         sqlHelper = new SqlHelper(db, DbOpenHelper.JOB_HOLDER_TABLE_NAME,
                 DbOpenHelper.ID_COLUMN.columnName, DbOpenHelper.COLUMN_COUNT,
@@ -431,7 +428,6 @@ public class SqliteJobQueue implements JobQueue {
                 .job(job)
                 .id(jobId)
                 .tags(tags)
-                .persistent(true)
                 .deadline(cursor.getLong(DbOpenHelper.DEADLINE_COLUMN.columnIndex),
                         cursor.getInt(DbOpenHelper.CANCEL_ON_DEADLINE_COLUMN.columnIndex) == 1)
                 .createdNs(cursor.getLong(DbOpenHelper.CREATED_NS_COLUMN.columnIndex))

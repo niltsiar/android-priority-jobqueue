@@ -38,18 +38,18 @@ public class SingleIdTest extends JobManagerTestBase {
         jobManager.stop();
         String singleId = "forks";
 
-        DummyJob dummyJob1 = new DummyJob(new Params(0).setPersistent(persistent).setSingleId(singleId));
+        DummyJob dummyJob1 = new DummyJob(new Params(0).setSingleId(singleId));
         String jobId1 = addJob(jobManager, dummyJob1);
 
-        DummyJob dummyJob2 = new DummyJob(new Params(0).setPersistent(persistent));
+        DummyJob dummyJob2 = new DummyJob(new Params(0));
         String jobId2 = addJob(jobManager, dummyJob2);
         assertThat("should add job if doesn't have singleId", jobManager.countReadyJobs(), is(2));
 
-        DummyJob dummyJob3 = new DummyJob(new Params(0).setPersistent(persistent).setSingleId("otherId"));
+        DummyJob dummyJob3 = new DummyJob(new Params(0).setSingleId("otherId"));
         String jobId3 = addJob(jobManager, dummyJob3);
         assertThat("should add job if different singleId", jobManager.countReadyJobs(), is(3));
 
-        DummyJob dummyJob4 = new DummyJob(new Params(0).setPersistent(persistent).setSingleId(singleId));
+        DummyJob dummyJob4 = new DummyJob(new Params(0).setSingleId(singleId));
         addJob(jobManager, dummyJob4);
         assertThat("should not add job with same singleId", jobManager.countReadyJobs(), is(3));
 
@@ -75,8 +75,8 @@ public class SingleIdTest extends JobManagerTestBase {
         CountDownLatch latchWait = new CountDownLatch(1);
         CountDownLatch latchRunning = new CountDownLatch(1);
 
-        DummyJob dummyJob1 = new SerializableDummyTwoLatchJob(
-                new Params(0).setPersistent(persistent).setSingleId(singleId).setGroupId(singleId), latchWait, latchRunning);
+        DummyJob dummyJob1 = new SerializableDummyTwoLatchJob(new Params(0).setSingleId(singleId)
+                                                                           .setGroupId(singleId), latchWait, latchRunning);
         addJob(jobManager, dummyJob1);
         jobManager.start();
         latchRunning.await(5, TimeUnit.SECONDS); //let job1 start running
@@ -84,10 +84,12 @@ public class SingleIdTest extends JobManagerTestBase {
         assertThat("should not be marked ready", jobManager.count(), is(0));
 
         CountDownLatch latchRunning2 = new CountDownLatch(1);
-        DummyJob dummyJob2 = new SerializableDummyLatchJob(new Params(0).setPersistent(persistent).setSingleId(singleId).setGroupId(singleId), latchRunning2);
+        DummyJob dummyJob2 = new SerializableDummyLatchJob(new Params(0).setSingleId(singleId)
+                                                                        .setGroupId(singleId), latchRunning2);
         addJob(jobManager, dummyJob2);
         assertThat("should add new job if first job was running", jobManager.count(), is(1));
-        DummyJob dummyJob3 = new DummyJob(new Params(0).setPersistent(persistent).setSingleId(singleId).setGroupId(singleId));
+        DummyJob dummyJob3 = new DummyJob(new Params(0).setSingleId(singleId)
+                                                       .setGroupId(singleId));
         addJob(jobManager, dummyJob3);
         assertThat("should not add new job if already queued", jobManager.count(), is(1));
 
@@ -98,7 +100,8 @@ public class SingleIdTest extends JobManagerTestBase {
         assertThat("job should not have run", dummyJob3.getOnRunCnt(), is(0));
         assertThat("should have called onCancel", dummyJob3.getOnCancelCnt(), is(1));
 
-        DummyJob dummyJob4 = new DummyJob(new Params(0).setPersistent(persistent).setSingleId(singleId).setGroupId(singleId));
+        DummyJob dummyJob4 = new DummyJob(new Params(0).setSingleId(singleId)
+                                                       .setGroupId(singleId));
         addJob(jobManager, dummyJob4);
         assertThat("should be added if all others have run", jobManager.count(), is(1));
     }

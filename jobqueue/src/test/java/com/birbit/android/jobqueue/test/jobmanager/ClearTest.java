@@ -18,7 +18,7 @@ public class ClearTest extends JobManagerTestBase {
         JobManager jobManager = createJobManager();
         final int LIMIT = 20;
         for(int i = 0; i < LIMIT; i++) {
-            jobManager.addJob(new DummyJob(new Params(0).setPersistent(i % 2 == 1)));
+            jobManager.addJob(new DummyJob(new Params(0)));
         }
         jobManager.clear();
         MatcherAssert.assertThat("after clear, count should be 0", jobManager.count(), equalTo(0));

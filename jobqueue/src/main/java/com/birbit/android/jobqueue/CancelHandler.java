@@ -37,17 +37,10 @@ class CancelHandler {
         queryConstraint.setMaxNetworkType(NetworkUtil.UNMETERED);
         Set<JobHolder> nonPersistentInQueue = jobManagerThread.nonPersistentJobQueue
                 .findJobs(queryConstraint);
-        Set<JobHolder> persistentInQueue = jobManagerThread.persistentJobQueue
-                .findJobs(queryConstraint);
         for (JobHolder nonPersistent : nonPersistentInQueue) {
             nonPersistent.markAsCancelled();
             cancelled.add(nonPersistent);
             jobManagerThread.nonPersistentJobQueue.onJobCancelled(nonPersistent);
-        }
-        for (JobHolder persistent : persistentInQueue) {
-            persistent.markAsCancelled();
-            cancelled.add(persistent);
-            jobManagerThread.persistentJobQueue.onJobCancelled(persistent);
         }
     }
 
@@ -57,9 +50,6 @@ class CancelHandler {
                 jobHolder.onCancel(CancelReason.CANCELLED_WHILE_RUNNING);
             } catch (Throwable t) {
                 JqLog.e(t, "job's on cancel has thrown an exception. Ignoring...");
-            }
-            if (jobHolder.getJob().isPersistent()) {
-                jobManagerThread.persistentJobQueue.remove(jobHolder);
             }
         }
         if (callback != null) {

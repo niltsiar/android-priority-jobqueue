@@ -43,7 +43,7 @@ public class ApplicationContextTests extends JobManagerTestBase {
 
     public void getContextTest(boolean persistent)
             throws InterruptedException, MultipleFailureException {
-        final ContextCheckJob addedJob = new ContextCheckJob(new Params(1).setPersistent(persistent));
+        final ContextCheckJob addedJob = new ContextCheckJob(new Params(1));
         final JobManager jobManager = createJobManager();
         waitUntilAJobIsDone(jobManager, new WaitUntilCallback() {
             @Override

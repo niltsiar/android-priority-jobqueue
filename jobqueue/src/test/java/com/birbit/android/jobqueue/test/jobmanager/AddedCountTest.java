@@ -21,7 +21,7 @@ public class AddedCountTest extends JobManagerTestBase {
 
     @Test
     public void testAddedCountPersistent() {
-        testAddedCount(new DummyJob(new Params(0).persist()));
+        testAddedCount(new DummyJob(new Params(0)));
     }
 
     private void testAddedCount(DummyJob dummyJob) {

@@ -20,7 +20,7 @@ public class SessionIdTest extends JobManagerTestBase {
         JobManager jobManager = createJobManager();
         Long sessionId = mockTimer.nanoTime(); //we know job manager uses this value :/
         jobManager.stop();
-        Job[] jobs = new Job[]{new DummyJob(new Params(0)), new DummyJob(new Params(0).persist())};
+        Job[] jobs = new Job[]{new DummyJob(new Params(0)), new DummyJob(new Params(0))};
         for (Job job : jobs) {
             jobManager.addJob(job);
         }

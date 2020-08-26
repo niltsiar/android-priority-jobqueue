@@ -54,8 +54,7 @@ public class MultiThreadTest extends JobManagerTestBase {
                     boolean requiresNetwork = Math.round(Math.random()) % 2 == 0;
                     int priority = (int) (Math.round(Math.random()) % 10);
                     multiThreadedJobCounter.incrementAndGet();
-                    Params params = new Params(priority).setRequiresNetwork(requiresNetwork)
-                            .setPersistent(persistent);
+                    Params params = new Params(priority).setRequiresNetwork(requiresNetwork);
                     if (Math.random() < .1) {
                         params.addTags(cancelTag);
                     }

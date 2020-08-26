@@ -72,9 +72,7 @@ public class CancelWhileRunningTest extends JobManagerTestBase {
 
         for (Job j : result.getCancelledJobs()) {
             FailingJob job = (FailingJob) j;
-            if (!job.isPersistent()) {
-                assertThat("job is still added", job.getOnAddedCnt(), is(1));
-            }
+            assertThat("job is still added", job.getOnAddedCnt(), is(1));
             if (job.fail) {
                 assertThat("job is cancelled", job.getOnCancelCnt(), is(1));
             } else {
@@ -84,9 +82,7 @@ public class CancelWhileRunningTest extends JobManagerTestBase {
 
         for (Job j : result.getFailedToCancel()) {
             FailingJob job = (FailingJob) j;
-            if (!job.isPersistent()) {
-                assertThat("job is still added", job.getOnAddedCnt(), is(1));
-            }
+            assertThat("job is still added", job.getOnAddedCnt(), is(1));
             if (job.fail) {
                 assertThat("job is cancelled", job.getOnCancelCnt(), is(1));
             } else {
@@ -106,7 +102,7 @@ public class CancelWhileRunningTest extends JobManagerTestBase {
     public static class PersistentJobWithEndLatch extends FailingJob {
 
         public PersistentJobWithEndLatch(Params params, boolean fail) {
-            super(params.persist(), fail);
+            super(params, fail);
         }
 
         @Override

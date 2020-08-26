@@ -2,7 +2,6 @@ package com.birbit.android.jobqueue;
 
 import android.content.Context;
 import androidx.annotation.Nullable;
-
 import com.birbit.android.jobqueue.callback.JobManagerCallback;
 import com.birbit.android.jobqueue.config.Configuration;
 import com.birbit.android.jobqueue.di.DependencyInjector;
@@ -24,7 +23,6 @@ import com.birbit.android.jobqueue.network.NetworkUtil;
 import com.birbit.android.jobqueue.scheduling.Scheduler;
 import com.birbit.android.jobqueue.scheduling.SchedulerConstraint;
 import com.birbit.android.jobqueue.timer.Timer;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -37,7 +35,6 @@ class JobManagerThread implements Runnable, NetworkEventProvider.Listener {
     public static final long NOT_RUNNING_SESSION_ID = Long.MIN_VALUE;
     public static final long NOT_DELAYED_JOB_DELAY = Long.MIN_VALUE;
 
-
     final Timer timer;
     private final Context appContext;
     @SuppressWarnings("FieldCanBeLocal")
@@ -48,8 +45,10 @@ class JobManagerThread implements Runnable, NetworkEventProvider.Listener {
     private final DependencyInjector dependencyInjector;
     private final MessageFactory messageFactory;
     final ConsumerManager consumerManager;
-    @Nullable private List<CancelHandler> pendingCancelHandlers;
-    @Nullable private List<SchedulerConstraint> pendingSchedulerCallbacks;
+    @Nullable
+    private List<CancelHandler> pendingCancelHandlers;
+    @Nullable
+    private List<SchedulerConstraint> pendingSchedulerCallbacks;
     final Constraint queryConstraint = new Constraint();
 
     final CallbackManager callbackManager;
@@ -68,10 +67,9 @@ class JobManagerThread implements Runnable, NetworkEventProvider.Listener {
     @Nullable
     Scheduler scheduler;
 
-    JobManagerThread(Configuration config, PriorityMessageQueue messageQueue,
-            MessageFactory messageFactory) {
+    JobManagerThread(Configuration config, PriorityMessageQueue messageQueue, MessageFactory messageFactory) {
         this.messageQueue = messageQueue;
-        if(config.getCustomLogger() != null) {
+        if (config.getCustomLogger() != null) {
             JqLog.setCustomLogger(config.getCustomLogger());
         }
         this.messageFactory = messageFactory;
@@ -79,17 +77,16 @@ class JobManagerThread implements Runnable, NetworkEventProvider.Listener {
         appContext = config.getAppContext();
         sessionId = timer.nanoTime();
         scheduler = config.getScheduler();
-        if (scheduler != null && config.batchSchedulerRequests() &&
-                !(scheduler instanceof BatchingScheduler)) {
+        if (scheduler != null && config.batchSchedulerRequests() && !(scheduler instanceof BatchingScheduler)) {
             scheduler = new BatchingScheduler(scheduler, timer);
         }
         this.persistentJobQueue = config.getQueueFactory()
-                .createPersistentQueue(config, sessionId);
+                                        .createPersistentQueue(config, sessionId);
         this.nonPersistentJobQueue = config.getQueueFactory()
-                .createNonPersistent(config, sessionId);
+                                           .createNonPersistent(config, sessionId);
         networkUtil = config.getNetworkUtil();
         dependencyInjector = config.getDependencyInjector();
-        if(networkUtil instanceof NetworkEventProvider) {
+        if (networkUtil instanceof NetworkEventProvider) {
             ((NetworkEventProvider) networkUtil).setListener(this);
         }
         consumerManager = new ConsumerManager(this, timer, messageFactory, config);
@@ -112,30 +109,25 @@ class JobManagerThread implements Runnable, NetworkEventProvider.Listener {
         Job job = message.getJob();
         //noinspection deprecation
         long now = timer.nanoTime();
-        long delayUntilNs = job.getDelayInMs() > 0
-                ? now + job.getDelayInMs() * NS_PER_MS
-                : NOT_DELAYED_JOB_DELAY;
-        long deadline = job.getDeadlineInMs() > 0
-                ? now + job.getDeadlineInMs() * NS_PER_MS
-                : Params.FOREVER;
-        JobHolder jobHolder = new JobHolder.Builder()
-                .priority(job.getPriority())
-                .job(job)
-                .groupId(job.getRunGroupId())
-                .createdNs(now)
-                .delayUntilNs(delayUntilNs)
-                .id(job.getId())
-                .tags(job.getTags())
-                .persistent(job.isPersistent())
-                .runCount(0)
-                .deadline(deadline, job.shouldCancelOnDeadline())
-                .requiredNetworkType(job.requiredNetworkType)
-                .runningSessionId(NOT_RUNNING_SESSION_ID).build();
+        long delayUntilNs = job.getDelayInMs() > 0 ? now + job.getDelayInMs() * NS_PER_MS : NOT_DELAYED_JOB_DELAY;
+        long deadline = job.getDeadlineInMs() > 0 ? now + job.getDeadlineInMs() * NS_PER_MS : Params.FOREVER;
+        JobHolder jobHolder = new JobHolder.Builder().priority(job.getPriority())
+                                                     .job(job)
+                                                     .groupId(job.getRunGroupId())
+                                                     .createdNs(now)
+                                                     .delayUntilNs(delayUntilNs)
+                                                     .id(job.getId())
+                                                     .tags(job.getTags())
+                                                     .runCount(0)
+                                                     .deadline(deadline, job.shouldCancelOnDeadline())
+                                                     .requiredNetworkType(job.requiredNetworkType)
+                                                     .runningSessionId(NOT_RUNNING_SESSION_ID)
+                                                     .build();
 
         JobHolder oldJob = findJobBySingleId(job.getSingleInstanceId());
         final boolean insert = oldJob == null || consumerManager.isJobRunning(oldJob.getId());
         if (insert) {
-            JobQueue queue = job.isPersistent() ? persistentJobQueue : nonPersistentJobQueue;
+            JobQueue queue = nonPersistentJobQueue;
             if (oldJob != null) { //the other job was running, will be cancelled if it fails
                 consumerManager.markJobsCancelledSingleId(TagConstraint.ANY, new String[]{job.getSingleInstanceId()});
                 queue.substitute(jobHolder, oldJob);
@@ -143,25 +135,22 @@ class JobManagerThread implements Runnable, NetworkEventProvider.Listener {
                 queue.insert(jobHolder);
             }
             if (JqLog.isDebugEnabled()) {
-                JqLog.d("added job class: %s priority: %d delay: %d group : %s persistent: %s"
-                        , job.getClass().getSimpleName(), job.getPriority(), job.getDelayInMs()
-                        , job.getRunGroupId(), job.isPersistent());
+                JqLog.d("added job class: %s priority: %d delay: %d group : %s", job.getClass()
+                                                                                    .getSimpleName(), job.getPriority(), job.getDelayInMs(), job.getRunGroupId());
             }
         } else {
             JqLog.d("another job with same singleId: %s was already queued", job.getSingleInstanceId());
         }
-        if(dependencyInjector != null) {
+        if (dependencyInjector != null) {
             //inject members b4 calling onAdded
             dependencyInjector.inject(job);
         }
         jobHolder.setApplicationContext(appContext);
-        jobHolder.getJob().onAdded();
+        jobHolder.getJob()
+                 .onAdded();
         callbackManager.notifyOnAdded(jobHolder.getJob());
         if (insert) {
             consumerManager.onJobAdded();
-            if (job.isPersistent()) {
-                scheduleWakeUpFor(jobHolder, now);
-            }
         } else {
             cancelSafely(jobHolder, CancelReason.SINGLE_INSTANCE_ID_QUEUED);
             callbackManager.notifyOnDone(jobHolder.getJob());
@@ -176,16 +165,15 @@ class JobManagerThread implements Runnable, NetworkEventProvider.Listener {
         long delayUntilNs = holder.getDelayUntilNs();
         long deadlineNs = holder.getDeadlineNs();
         long delay = delayUntilNs > now ? TimeUnit.NANOSECONDS.toMillis(delayUntilNs - now) : 0;
-        Long deadline = deadlineNs != Params.FOREVER
-                ? TimeUnit.NANOSECONDS.toMillis(deadlineNs - now)
-                : null;
+        Long deadline = deadlineNs != Params.FOREVER ? TimeUnit.NANOSECONDS.toMillis(deadlineNs - now) : null;
         boolean hasLargeDelay = delayUntilNs > now && delay >= JobManager.MIN_DELAY_TO_USE_SCHEDULER_IN_MS;
         boolean hasLargeDeadline = deadline != null && deadline >= JobManager.MIN_DELAY_TO_USE_SCHEDULER_IN_MS;
         if (requiredNetwork == NetworkUtil.DISCONNECTED && !hasLargeDelay && !hasLargeDeadline) {
             return;
         }
 
-        SchedulerConstraint constraint = new SchedulerConstraint(UUID.randomUUID().toString());
+        SchedulerConstraint constraint = new SchedulerConstraint(UUID.randomUUID()
+                                                                     .toString());
         constraint.setNetworkStatus(requiredNetwork);
         constraint.setDelayInMs(delay);
         constraint.setOverrideDeadlineInMs(deadline);
@@ -211,7 +199,8 @@ class JobManagerThread implements Runnable, NetworkEventProvider.Listener {
                         return job;
                     }
                 }
-                return jobs.iterator().next();
+                return jobs.iterator()
+                           .next();
             }
         }
         return null;
@@ -238,10 +227,8 @@ class JobManagerThread implements Runnable, NetworkEventProvider.Listener {
                         break;
                     case CONSTRAINT_CHANGE:
                         boolean handled = consumerManager.handleConstraintChange();
-                        ConstraintChangeMessage constraintChangeMessage =
-                                (ConstraintChangeMessage) message;
-                        canScheduleConstraintChangeOnIdle = handled ||
-                                !constraintChangeMessage.isForNextJob();
+                        ConstraintChangeMessage constraintChangeMessage = (ConstraintChangeMessage) message;
+                        canScheduleConstraintChangeOnIdle = handled || !constraintChangeMessage.isForNextJob();
                         break;
                     case CANCEL:
                         handleCancel((CancelMessage) message);
@@ -265,8 +252,7 @@ class JobManagerThread implements Runnable, NetworkEventProvider.Listener {
                     return;
                 }
                 if (!canScheduleConstraintChangeOnIdle) {
-                    JqLog.v("skipping scheduling a new idle callback because looks like last one"
-                            + " did not do anything");
+                    JqLog.v("skipping scheduling a new idle callback because looks like last one" + " did not do anything");
                     return;
                 }
                 Long nextJobTimeNs = getNextWakeUpNs(true);
@@ -274,8 +260,7 @@ class JobManagerThread implements Runnable, NetworkEventProvider.Listener {
                 // same as now
                 JqLog.d("Job queue idle. next job at: %s", nextJobTimeNs);
                 if (nextJobTimeNs != null) {
-                    ConstraintChangeMessage constraintMessage =
-                            messageFactory.obtain(ConstraintChangeMessage.class);
+                    ConstraintChangeMessage constraintMessage = messageFactory.obtain(ConstraintChangeMessage.class);
                     constraintMessage.setForNextJob(true);
                     messageQueue.postAt(constraintMessage, nextJobTimeNs);
                 } else if (scheduler != null) {
@@ -290,8 +275,7 @@ class JobManagerThread implements Runnable, NetworkEventProvider.Listener {
     }
 
     private void invokeSchedulersIfIdle() {
-        if (scheduler == null || pendingSchedulerCallbacks == null
-                || pendingSchedulerCallbacks.isEmpty() || !consumerManager.areAllConsumersIdle()) {
+        if (scheduler == null || pendingSchedulerCallbacks == null || pendingSchedulerCallbacks.isEmpty() || !consumerManager.areAllConsumersIdle()) {
             return;
         }
         for (int i = pendingSchedulerCallbacks.size() - 1; i >= 0; i--) {
@@ -328,7 +312,8 @@ class JobManagerThread implements Runnable, NetworkEventProvider.Listener {
         if (pendingCallbacks != null) {
             for (int i = pendingCallbacks.size() - 1; i >= 0; i--) {
                 SchedulerConstraint pendingConstraint = pendingCallbacks.get(i);
-                if (pendingConstraint.getUuid().equals(constraint.getUuid())) {
+                if (pendingConstraint.getUuid()
+                                     .equals(constraint.getUuid())) {
                     pendingCallbacks.remove(i);
                 }
             }
@@ -342,7 +327,6 @@ class JobManagerThread implements Runnable, NetworkEventProvider.Listener {
             scheduler.request(constraint);
         }
     }
-
 
     private void handleSchedulerStart(SchedulerConstraint constraint) {
         if (!isRunning()) {
@@ -380,10 +364,12 @@ class JobManagerThread implements Runnable, NetworkEventProvider.Listener {
     private void handlePublicQuery(PublicQueryMessage message) {
         switch (message.getWhat()) {
             case PublicQueryMessage.COUNT:
-                message.getCallback().onResult(count());
+                message.getCallback()
+                       .onResult(count());
                 break;
             case PublicQueryMessage.COUNT_READY:
-                message.getCallback().onResult(countReadyJobs(getNetworkStatus()));
+                message.getCallback()
+                       .onResult(countReadyJobs(getNetworkStatus()));
                 break;
             case PublicQueryMessage.START:
                 JqLog.d("handling start request...");
@@ -400,23 +386,26 @@ class JobManagerThread implements Runnable, NetworkEventProvider.Listener {
                 break;
             case PublicQueryMessage.JOB_STATUS:
                 JobStatus status = getJobStatus(message.getStringArg());
-                message.getCallback().onResult(status.ordinal());
+                message.getCallback()
+                       .onResult(status.ordinal());
                 break;
             case PublicQueryMessage.CLEAR:
                 clear();
                 if (message.getCallback() != null) {
-                    message.getCallback().onResult(0);
+                    message.getCallback()
+                           .onResult(0);
                 }
                 break;
             case PublicQueryMessage.ACTIVE_CONSUMER_COUNT:
-                message.getCallback().onResult(consumerManager.getWorkerCount());
+                message.getCallback()
+                       .onResult(consumerManager.getWorkerCount());
                 break;
             case PublicQueryMessage.INTERNAL_RUNNABLE:
-                message.getCallback().onResult(0);
+                message.getCallback()
+                       .onResult(0);
                 break;
             default:
-                throw new IllegalArgumentException("cannot handle public query with type " +
-                message.getWhat());
+                throw new IllegalArgumentException("cannot handle public query with type " + message.getWhat());
         }
     }
 
@@ -434,23 +423,22 @@ class JobManagerThread implements Runnable, NetworkEventProvider.Listener {
         if (holder == null) {
             holder = persistentJobQueue.findJobById(id);
         }
-        if(holder == null) {
+        if (holder == null) {
             return JobStatus.UNKNOWN;
         }
         final int networkStatus = getNetworkStatus();
         final long now = timer.nanoTime();
-        if(networkStatus < holder.requiredNetworkType) {
+        if (networkStatus < holder.requiredNetworkType) {
             return JobStatus.WAITING_NOT_READY;
         }
-        if(holder.getDelayUntilNs() > now) {
+        if (holder.getDelayUntilNs() > now) {
             return JobStatus.WAITING_NOT_READY;
         }
         return JobStatus.WAITING_READY;
     }
 
     private void handleCancel(CancelMessage message) {
-        CancelHandler handler = new CancelHandler(message.getConstraint(), message.getTags(),
-                message.getCallback());
+        CancelHandler handler = new CancelHandler(message.getConstraint(), message.getTags(), message.getCallback());
         handler.query(this, consumerManager);
         if (handler.isDone()) {
             handler.commit(this);
@@ -492,9 +480,7 @@ class JobManagerThread implements Runnable, NetworkEventProvider.Listener {
                 insertOrReplace(jobHolder);
                 break;
             case JobHolder.RUN_RESULT_FAIL_FOR_CANCEL:
-                JqLog.d("running job failed and cancelled, doing nothing. "
-                        + "Will be removed after it's onCancel is called by the "
-                        + "CancelHandler");
+                JqLog.d("running job failed and cancelled, doing nothing. " + "Will be removed after it's onCancel is called by the " + "CancelHandler");
                 break;
             default:
                 throw new IllegalArgumentException("unknown job holder result");
@@ -503,7 +489,7 @@ class JobManagerThread implements Runnable, NetworkEventProvider.Listener {
         callbackManager.notifyAfterRun(jobHolder.getJob(), result);
         if (pendingCancelHandlers != null) {
             int limit = pendingCancelHandlers.size();
-            for (int i = 0; i < limit; i ++) {
+            for (int i = 0; i < limit; i++) {
                 CancelHandler handler = pendingCancelHandlers.get(i);
                 handler.onJobRun(jobHolder, result);
                 if (handler.isDone()) {
@@ -538,30 +524,20 @@ class JobManagerThread implements Runnable, NetworkEventProvider.Listener {
         if (retryConstraint.getNewDelayInMs() != null) {
             delay = retryConstraint.getNewDelayInMs();
         }
-        jobHolder.setDelayUntilNs(
-                delay > 0 ? timer.nanoTime() + delay * NS_PER_MS : NOT_DELAYED_JOB_DELAY
-        );
+        jobHolder.setDelayUntilNs(delay > 0 ? timer.nanoTime() + delay * NS_PER_MS : NOT_DELAYED_JOB_DELAY);
         reAddJob(jobHolder);
     }
 
     private void reAddJob(JobHolder jobHolder) {
         if (!jobHolder.isCancelled()) {
-            if (jobHolder.getJob().isPersistent()) {
-                persistentJobQueue.insertOrReplace(jobHolder);
-            } else {
-                nonPersistentJobQueue.insertOrReplace(jobHolder);
-            }
+            nonPersistentJobQueue.insertOrReplace(jobHolder);
         } else {
             JqLog.d("not re-adding cancelled job " + jobHolder);
         }
     }
 
     private void removeJob(JobHolder jobHolder) {
-        if (jobHolder.getJob().isPersistent()) {
-            persistentJobQueue.remove(jobHolder);
-        } else {
-            nonPersistentJobQueue.remove(jobHolder);
-        }
+        nonPersistentJobQueue.remove(jobHolder);
         callbackManager.notifyOnDone(jobHolder.getJob());
     }
 
@@ -674,8 +650,7 @@ class JobManagerThread implements Runnable, NetworkEventProvider.Listener {
             }
             jobHolder.setApplicationContext(appContext);
             jobHolder.setDeadlineIsReached(jobHolder.getDeadlineNs() <= now);
-            if (jobHolder.getDeadlineNs() <= now
-                    && jobHolder.shouldCancelOnDeadline()) {
+            if (jobHolder.getDeadlineNs() <= now && jobHolder.shouldCancelOnDeadline()) {
                 cancelSafely(jobHolder, CancelReason.REACHED_DEADLINE);
                 removeJob(jobHolder);
                 jobHolder = null;

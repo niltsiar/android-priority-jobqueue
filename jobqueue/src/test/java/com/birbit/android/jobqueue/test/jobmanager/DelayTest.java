@@ -29,17 +29,17 @@ public class DelayTest extends JobManagerTestBase {
     public void testDelay(boolean persist) throws Throwable {
         JobManager jobManager = createJobManager();
         jobManager.stop();
-        DummyJob delayedJob = new DummyJob(new Params(10).delayInMs(1000).setPersistent(persist));
-        DummyJob nonDelayedJob = new DummyJob(new Params(0).setPersistent(persist));
+        DummyJob delayedJob = new DummyJob(new Params(10).delayInMs(1000));
+        DummyJob nonDelayedJob = new DummyJob(new Params(0));
         jobManager.addJob(delayedJob);
         jobManager.addJob(nonDelayedJob);
 
         JobHolder receivedJob = nextJob(jobManager);
         MatcherAssert.assertThat("non-delayed job should be served", receivedJob, notNullValue());
-        MatcherAssert.assertThat("non-delayed job should id should match",  receivedJob.getId(), equalTo(nonDelayedJob.getId()));
+        MatcherAssert.assertThat("non-delayed job should id should match", receivedJob.getId(), equalTo(nonDelayedJob.getId()));
         removeJob(jobManager, receivedJob);
         MatcherAssert.assertThat("delayed job should not be served", nextJob(jobManager), nullValue());
-        MatcherAssert.assertThat("job count should still be 1",  jobManager.count(), equalTo(1));
+        MatcherAssert.assertThat("job count should still be 1", jobManager.count(), equalTo(1));
         mockTimer.incrementMs(500);
         MatcherAssert.assertThat("delayed job should not be served", nextJob(jobManager), nullValue());
         MatcherAssert.assertThat("job count should still be 1",  jobManager.count(), equalTo(1));

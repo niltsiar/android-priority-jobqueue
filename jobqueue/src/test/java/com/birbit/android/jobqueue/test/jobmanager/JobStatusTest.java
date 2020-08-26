@@ -38,10 +38,8 @@ public class JobStatusTest extends JobManagerTestBase {
                         .timer(mockTimer));
         jobManager.stop();
         List<Integer> networkRequiringJobIndices = new ArrayList<Integer>();
-        Job[] jobs = new Job[] {
-                new DummyJob(new Params(0)),
-                new DummyJob(new Params(0).persist()),
-                new DummyJob(new Params(0).persist().requireNetwork().addTags(REQ_NETWORK_TAG))
+        Job[] jobs = new Job[] {new DummyJob(new Params(0)), new DummyJob(new Params(0)), new DummyJob(new Params(0).requireNetwork()
+                                                                                                                    .addTags(REQ_NETWORK_TAG))
         };
         String[] ids = new String[jobs.length];
         networkRequiringJobIndices.add(2);
@@ -126,11 +124,9 @@ public class JobStatusTest extends JobManagerTestBase {
             assertThat("all jobs finished, states should be unknown", jobManager.getJobStatus(ids[i]), is(JobStatus.UNKNOWN));
         }
         final long SHORT_SLEEP = 2000;
-        Job[] delayedJobs = new Job[]{
-                new DummyJob(new Params(0).delayInMs(SHORT_SLEEP)),
-                new DummyJob(new Params(0).delayInMs(SHORT_SLEEP).persist()),
-                new DummyJob(new Params(0).delayInMs(SHORT_SLEEP * 10)),
-                new DummyJob(new Params(0).delayInMs(SHORT_SLEEP * 10).persist())};
+        Job[] delayedJobs = new Job[]{new DummyJob(new Params(0).delayInMs(SHORT_SLEEP)), new DummyJob(new Params(0).delayInMs(SHORT_SLEEP)), new DummyJob(
+                new Params(0).delayInMs(SHORT_SLEEP * 10)), new DummyJob(new Params(0).delayInMs(SHORT_SLEEP * 10))
+        };
         String[] delayedIds = new String[delayedJobs.length];
         long start = mockTimer.nanoTime();
         for(int i = 0; i < delayedJobs.length; i ++) {

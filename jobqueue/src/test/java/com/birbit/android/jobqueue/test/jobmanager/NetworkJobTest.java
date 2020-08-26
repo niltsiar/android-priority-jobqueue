@@ -124,10 +124,10 @@ public class NetworkJobTest extends JobManagerTestBase {
         DummyJob noNetworkDummyJob = new DummyJob(new Params(2));
         jobManager.addJob(noNetworkDummyJob);
 
-        DummyJob networkPersistentJob = new DummyJob(addRequirement(new Params(6).persist()));
+        DummyJob networkPersistentJob = new DummyJob(addRequirement(new Params(6)));
         jobManager.addJob(networkPersistentJob);
 
-        DummyJob noNetworkPersistentJob = new DummyJob(new Params(1).persist());
+        DummyJob noNetworkPersistentJob = new DummyJob(new Params(1));
         jobManager.addJob(noNetworkPersistentJob);
 
         MatcherAssert.assertThat("count should be correct if there are network and non-network jobs w/o network", jobManager.count(), equalTo(4));
@@ -179,7 +179,7 @@ public class NetworkJobTest extends JobManagerTestBase {
     public static class PersistentDummyJob extends Job {
 
         public PersistentDummyJob(Params params) {
-            super(params.persist());
+            super(params);
         }
 
         @Override

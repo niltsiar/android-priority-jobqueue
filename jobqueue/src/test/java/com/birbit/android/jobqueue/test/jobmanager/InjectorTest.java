@@ -38,7 +38,7 @@ public class InjectorTest extends JobManagerTestBase {
         jobManager.stop();
         jobManager.addJob(new DummyJob(new Params(4)));
         MatcherAssert.assertThat("injection should be called after adding a non-persistent job", injectionCallCount.get(), equalTo(1));
-        jobManager.addJob(new DummyJob(new Params(1).persist()));
+        jobManager.addJob(new DummyJob(new Params(1)));
         MatcherAssert.assertThat("injection should be called after adding a persistent job", injectionCallCount.get(), equalTo(2));
         JobHolder holder = nextJob(jobManager);
         MatcherAssert.assertThat("injection should NOT be called for non persistent job", holder.getJob(), not(injectedJobReference.getObject()));

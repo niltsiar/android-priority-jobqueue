@@ -5,15 +5,13 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import androidx.annotation.NonNull;
-
 import com.birbit.android.jobqueue.BuildConfig;
-import com.birbit.android.jobqueue.JobManager;
-import com.birbit.android.jobqueue.JobManagerThreadRunnable;
-import com.birbit.android.jobqueue.RetryConstraint;
-import com.birbit.android.jobqueue.testing.CleanupRule;
 import com.birbit.android.jobqueue.Job;
 import com.birbit.android.jobqueue.JobHolder;
+import com.birbit.android.jobqueue.JobManager;
+import com.birbit.android.jobqueue.JobManagerThreadRunnable;
 import com.birbit.android.jobqueue.Params;
+import com.birbit.android.jobqueue.RetryConstraint;
 import com.birbit.android.jobqueue.callback.JobManagerCallbackAdapter;
 import com.birbit.android.jobqueue.config.Configuration;
 import com.birbit.android.jobqueue.network.NetworkEventProvider;
@@ -21,15 +19,8 @@ import com.birbit.android.jobqueue.network.NetworkUtil;
 import com.birbit.android.jobqueue.test.TestBase;
 import com.birbit.android.jobqueue.test.jobs.DummyJob;
 import com.birbit.android.jobqueue.test.timer.MockTimer;
+import com.birbit.android.jobqueue.testing.CleanupRule;
 import com.birbit.android.jobqueue.testing.CollectLogsRule;
-
-import static org.hamcrest.CoreMatchers.*;
-
-import org.hamcrest.*;
-import org.junit.Rule;
-import org.junit.rules.Timeout;
-import org.robolectric.*;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -39,6 +30,14 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import org.hamcrest.CoreMatchers;
+import org.hamcrest.MatcherAssert;
+import org.junit.Rule;
+import org.junit.rules.Timeout;
+import org.robolectric.RuntimeEnvironment;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
 
 
 public class JobManagerTestBase extends TestBase {
@@ -166,7 +165,7 @@ public class JobManagerTestBase extends TestBase {
     protected static class DummyJobWithRunCount extends DummyJob {
         public static int runCount;
         protected DummyJobWithRunCount(boolean persistent) {
-            super(new Params(0).setPersistent(persistent));
+            super(new Params(0));
         }
 
         @Override

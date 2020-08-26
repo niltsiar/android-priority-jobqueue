@@ -86,16 +86,19 @@ public class DelayedRunTest extends JobManagerTestBase {
 
             @Override
             public void onDone(@NonNull Job job) {
-                System.out.println("CB job done " + job.getTags().toArray()[0] + ", " + mockTimer.nanoTime());
+                System.out.println("CB job done " + job.getTags()
+                                                       .toArray()[0] + ", " + mockTimer.nanoTime());
             }
 
             @Override
             public void onAfterJobRun(@NonNull Job job, int resultCode) {
-                System.out.println("CB job after run " + job.getTags().toArray()[0] + ", " + mockTimer.nanoTime());
+                System.out.println("CB job after run " + job.getTags()
+                                                            .toArray()[0] + ", " + mockTimer.nanoTime());
             }
         });
-        final DummyJob delayedJob = new DummyJob(new Params(10).delayInMs(2000).setPersistent(persist).addTags("delayed"));
-        final DummyJob nonDelayedJob = new DummyJob(new Params(0).setPersistent(persist).addTags("notDelayed"));
+        final DummyJob delayedJob = new DummyJob(new Params(10).delayInMs(2000)
+                                                               .addTags("delayed"));
+        final DummyJob nonDelayedJob = new DummyJob(new Params(0).addTags("notDelayed"));
         waitUntilAJobIsDone(jobManager, new WaitUntilCallback() {
             @Override
             public void run() {
@@ -105,7 +108,8 @@ public class DelayedRunTest extends JobManagerTestBase {
 
             @Override
             public void assertJob(Job job) {
-                assertThat("correct job should run first", (String) job.getTags().toArray()[0],
+                assertThat("correct job should run first", (String) job.getTags()
+                                                                       .toArray()[0],
                         is("notDelayed"));
             }
         });

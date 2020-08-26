@@ -3,10 +3,8 @@ package com.birbit.android.jobqueue;
 import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
 import com.birbit.android.jobqueue.network.NetworkUtil;
 import com.birbit.android.jobqueue.timer.Timer;
-
 import java.util.Set;
 
 /**
@@ -52,7 +50,6 @@ public class JobHolder {
 
     private Long insertionOrder;
     public final String id;
-    public final boolean persistent;
     private int priority;
     public final String groupId;
     private int runCount;
@@ -64,17 +61,17 @@ public class JobHolder {
      * When job is created, Timer.nanoTime() is assigned to {@code createdNs} value so that we know
      * when job is created in relation to others
      */
-    private long createdNs;
+    private final long createdNs;
     private long runningSessionId;
     /* package */ int requiredNetworkType;
     /**
      * When we should ignore the constraints
      */
-    private long deadlineNs;
+    private final long deadlineNs;
     /**
      * What to do when deadline is reached
      */
-    private boolean cancelOnDeadline;
+    private final boolean cancelOnDeadline;
     transient final Job job;
     protected final Set<String> tags;
     private volatile boolean cancelled;
@@ -91,7 +88,6 @@ public class JobHolder {
 
     /**
      * @param id               The ID of the Job
-     * @param persistent       Is the job persistent
      * @param priority         Higher is better
      * @param groupId          which group does this job belong to? default null
      * @param runCount         Incremented each time job is fetched to run, initial value should be 0
@@ -104,11 +100,19 @@ public class JobHolder {
      * @param deadlineNs       System.nanotime value: when the job will ignore its constraints
      * @param cancelOnDeadline true if job should be cancelled when deadline is reached, false otherwise
      */
-    private JobHolder(String id, boolean persistent, int priority, String groupId, int runCount, Job job, long createdNs,
-                      long delayUntilNs, long runningSessionId, Set<String> tags,
-                      int requiredNetworkType, long deadlineNs, boolean cancelOnDeadline) {
+    private JobHolder(String id,
+            int priority,
+            String groupId,
+            int runCount,
+            Job job,
+            long createdNs,
+            long delayUntilNs,
+            long runningSessionId,
+            Set<String> tags,
+            int requiredNetworkType,
+            long deadlineNs,
+            boolean cancelOnDeadline) {
         this.id = id;
-        this.persistent = persistent;
         this.priority = priority;
         this.groupId = groupId;
         this.runCount = runCount;
@@ -302,9 +306,7 @@ public class JobHolder {
         private int priority;
         private static final int FLAG_PRIORITY = 1;
         private String id;
-        private static final int FLAG_PERSISTENT = FLAG_PRIORITY << 1;
-        private boolean persistent;
-        private static final int FLAG_ID = FLAG_PERSISTENT << 1;
+        private static final int FLAG_ID = FLAG_PRIORITY << 1;
         private String groupId;
         private static final int FLAG_GROUP_ID = FLAG_ID << 1;
         private int runCount = 0;
@@ -348,12 +350,6 @@ public class JobHolder {
 
         public Builder runCount(int runCount) {
             this.runCount = runCount;
-            return this;
-        }
-
-        public Builder persistent(boolean persistent) {
-            this.persistent = persistent;
-            providedFlags |= FLAG_PERSISTENT;
             return this;
         }
 
@@ -411,8 +407,7 @@ public class JobHolder {
                 throw new IllegalArgumentException("must provide all required fields. your result:" + Long.toBinaryString(flagCheck));
             }
 
-            JobHolder jobHolder = new JobHolder(id, persistent, priority, groupId, runCount, job, createdNs,
-                    delayUntilNs, runningSessionId, tags, requiredNetworkType, deadlineNs, cancelOnDeadline);
+            JobHolder jobHolder = new JobHolder(id, priority, groupId, runCount, job, createdNs, delayUntilNs, runningSessionId, tags, requiredNetworkType, deadlineNs, cancelOnDeadline);
             if (insertionOrder != null) {
                 jobHolder.setInsertionOrder(insertionOrder);
             }

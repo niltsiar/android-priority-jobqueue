@@ -71,9 +71,9 @@ public class DeadlineTest extends JobManagerTestBase {
                         .networkUtil(networkUtil)
                         .timer(mockTimer));
         networkUtil.setNetworkStatus(NetworkUtil.DISCONNECTED);
-        Params params = new Params(0).setPersistent(persistent).setRequiresNetwork(reqNetwork)
-                .setRequiresUnmeteredNetwork(reqUnmeteredNetwork)
-                .delayInMs(delay);
+        Params params = new Params(0).setRequiresNetwork(reqNetwork)
+                                     .setRequiresUnmeteredNetwork(reqUnmeteredNetwork)
+                                     .delayInMs(delay);
         if (cancelOnDeadline) {
             params.overrideDeadlineToCancelInMs(200);
         } else {

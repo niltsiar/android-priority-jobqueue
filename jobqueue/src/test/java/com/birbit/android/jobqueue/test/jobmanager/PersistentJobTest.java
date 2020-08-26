@@ -29,7 +29,7 @@ public class PersistentJobTest extends JobManagerTestBase {
     protected static class DummyPersistentLatchJob extends DummyJob {
 
         public DummyPersistentLatchJob() {
-            super(new Params(0).persist());
+            super(new Params(0));
         }
 
         @Override

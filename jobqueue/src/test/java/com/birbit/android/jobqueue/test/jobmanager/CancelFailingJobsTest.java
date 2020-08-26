@@ -110,13 +110,15 @@ public class CancelFailingJobsTest extends JobManagerTestBase {
     static int latchCounter = 0;
     public void testCancelWithoutNetworkPersistent(boolean async, TagConstraint constraint)
             throws InterruptedException {
-        JobManager jobManager = createJobManager(new Configuration.Builder(RuntimeEnvironment.application)
-                .minConsumerCount(5)
-                .networkUtil(networkUtil));
+        JobManager jobManager = createJobManager(new Configuration.Builder(RuntimeEnvironment.application).minConsumerCount(5)
+                                                                                                          .networkUtil(networkUtil));
         networkUtil.setNetworkStatus(NetworkUtil.DISCONNECTED, true);
-        jobManager.addJob(new DummyJob(new Params(1).persist().groupBy("group").addTags("tag")));
-        jobManager.addJob(new DummyJob(new Params(2).persist().groupBy("group").addTags("tag")));
-        jobManager.addJob(new DummyJob(new Params(3).persist().groupBy("group").addTags("tag")));
+        jobManager.addJob(new DummyJob(new Params(1).groupBy("group")
+                                                    .addTags("tag")));
+        jobManager.addJob(new DummyJob(new Params(2).groupBy("group")
+                                                    .addTags("tag")));
+        jobManager.addJob(new DummyJob(new Params(3).groupBy("group")
+                                                    .addTags("tag")));
         final CancelResult[] result = new CancelResult[1];
         if (async) {
             final CountDownLatch cancelLatch = new CountDownLatch(1);
@@ -135,7 +137,8 @@ public class CancelFailingJobsTest extends JobManagerTestBase {
         assertThat("all jobs should be canceled", result[0].getCancelledJobs().size(), is(3));
         assertThat("no jobs should fail to cancel", result[0].getFailedToCancel().size(), is(0));
         final CountDownLatch runLatch = persistentLatches[latchCounter ++];
-        jobManager.addJob(new PersistentDummyJob(new Params(3).persist().groupBy("group").addTags("tag"), latchCounter - 1));
+        jobManager.addJob(new PersistentDummyJob(new Params(3).groupBy("group")
+                                                              .addTags("tag"), latchCounter - 1));
         networkUtil.setNetworkStatus(NetworkUtil.METERED, true);
         assertThat("new job should run w/o any issues", runLatch.await(2, TimeUnit.SECONDS), is(true));
     }
@@ -164,7 +167,7 @@ public class CancelFailingJobsTest extends JobManagerTestBase {
     public static class PersistentDummyJob extends DummyJob {
         final int latch;
         public PersistentDummyJob(Params params, int latch) {
-            super(params.persist());
+            super(params);
             this.latch = latch;
         }
 

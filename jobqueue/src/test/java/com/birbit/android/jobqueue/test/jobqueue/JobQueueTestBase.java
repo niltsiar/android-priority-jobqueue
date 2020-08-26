@@ -1,29 +1,18 @@
 package com.birbit.android.jobqueue.test.jobqueue;
 
 import com.birbit.android.jobqueue.Constraint;
-import com.birbit.android.jobqueue.JobManager;
-import com.birbit.android.jobqueue.TestConstraint;
 import com.birbit.android.jobqueue.JobHolder;
+import com.birbit.android.jobqueue.JobManager;
 import com.birbit.android.jobqueue.JobQueue;
 import com.birbit.android.jobqueue.Params;
 import com.birbit.android.jobqueue.TagConstraint;
+import com.birbit.android.jobqueue.TestConstraint;
 import com.birbit.android.jobqueue.network.NetworkUtil;
 import com.birbit.android.jobqueue.test.TestBase;
 import com.birbit.android.jobqueue.test.jobs.DummyJob;
 import com.birbit.android.jobqueue.test.timer.MockTimer;
 import com.birbit.android.jobqueue.test.util.JobQueueFactory;
 import com.birbit.android.jobqueue.timer.Timer;
-
-import org.fest.reflect.core.*;
-
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.*;
-
-import org.hamcrest.CoreMatchers;
-import org.hamcrest.Matcher;
-import org.junit.Ignore;
-import org.junit.Test;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -33,10 +22,17 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import org.fest.reflect.core.Reflection;
+import org.hamcrest.CoreMatchers;
+import org.hamcrest.Matcher;
+import org.junit.Ignore;
+import org.junit.Test;
 
 import static com.birbit.android.jobqueue.TagConstraint.ALL;
 import static com.birbit.android.jobqueue.TagConstraint.ANY;
 import static com.birbit.android.jobqueue.TestConstraint.forTags;
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 @Ignore
 public abstract class JobQueueTestBase extends TestBase {
@@ -237,25 +233,21 @@ public abstract class JobQueueTestBase extends TestBase {
         jobQueue.insert(jobHolder5);
         TestConstraint constraint = new TestConstraint(mockTimer);
         constraint.setExcludeRunning(true);
-        constraint.setExcludeGroups(Arrays.asList(new String[]{"group2"}));
+        constraint.setExcludeGroups(Arrays.asList("group2"));
         JobHolder received = jobQueue.nextJobAndIncRunCount(constraint);
         assertThat("first jobs should be from group group1 if group2 is excluded",
                 received.getJob().getRunGroupId(), equalTo("group1"));
-        assertThat("correct job should be returned if groupId is provided",
-                received.getId(), equalTo(jobHolder1.getId()));
-        constraint.setExcludeGroups(Arrays.asList(new String[]{"group1", "group2"}));
-        assertThat("no jobs should be returned if all groups are excluded",
-                jobQueue.nextJobAndIncRunCount(constraint), is(nullValue()));
+        assertThat("correct job should be returned if groupId is provided", received.getId(), equalTo(jobHolder1.getId()));
+        constraint.setExcludeGroups(Arrays.asList("group1", "group2"));
+        assertThat("no jobs should be returned if all groups are excluded", jobQueue.nextJobAndIncRunCount(constraint), is(nullValue()));
         JobHolder jobHolder6 = createNewJobHolder(new Params(0));
         jobQueue.insert(jobHolder6);
         JobHolder tmpReceived = jobQueue.nextJobAndIncRunCount(constraint);
-        assertThat("both groups are disabled, null group job should be returned",
-                tmpReceived.getId(),
-                is(jobHolder6.getId()));
-        constraint.setExcludeGroups(Arrays.asList(new String[]{"group1"}));
-        assertThat("if group1 is excluded, next job should be from group2",
-                jobQueue.nextJobAndIncRunCount(constraint).getJob().getRunGroupId()
-                , equalTo("group2"));
+        assertThat("both groups are disabled, null group job should be returned", tmpReceived.getId(), is(jobHolder6.getId()));
+        constraint.setExcludeGroups(Arrays.asList("group1"));
+        assertThat("if group1 is excluded, next job should be from group2", jobQueue.nextJobAndIncRunCount(constraint)
+                                                                                    .getJob()
+                                                                                    .getRunGroupId(), equalTo("group2"));
 
         //to test re-run case, add the job back in
         assertThat(jobQueue.insertOrReplace(received), is(true));
@@ -263,9 +255,8 @@ public abstract class JobQueueTestBase extends TestBase {
         constraint.clear();
         constraint.setExcludeRunning(true);
         JobHolder received2 = jobQueue.nextJobAndIncRunCount(constraint);
-        assertThat("for grouped jobs, re-fetching job should work fine",
-                received2.getId(), equalTo(received.getId()));
-        constraint.setExcludeGroups(Arrays.asList(new String[]{"group1"}));
+        assertThat("for grouped jobs, re-fetching job should work fine", received2.getId(), equalTo(received.getId()));
+        constraint.setExcludeGroups(Arrays.asList("group1"));
         JobHolder received3 = jobQueue.nextJobAndIncRunCount(constraint);
         assertThat("if a group is excluded, next available from another group should be returned",
                 received3.getId(), equalTo(jobHolder4.getId()));
@@ -275,7 +266,7 @@ public abstract class JobQueueTestBase extends TestBase {
         jobQueue.insert(jobHolder7);
         JobHolder jobHolder8 = createNewJobHolder(new Params(0));
         jobQueue.insert(jobHolder8);
-        constraint.setExcludeGroups(Arrays.asList(new String[]{"group1", "group2"}));
+        constraint.setExcludeGroups(Arrays.asList("group1", "group2"));
         JobHolder holder4 = jobQueue.nextJobAndIncRunCount(constraint);
         assertThat("if all grouped jobs are excluded, next non-grouped job should be returned",
                 holder4.getId(),
@@ -594,14 +585,11 @@ public abstract class JobQueueTestBase extends TestBase {
         jobQueue.insert(createNewJobHolder(new Params(5).groupBy("group1")));
         jobQueue.insert(createNewJobHolder(new Params(5).groupBy("group1")));
         constraint.setMaxNetworkType(NetworkUtil.METERED);
-        assertThat("when more than 1 job from same group is created, ready jobs should increment only by 1",
-                jobQueue.countReadyJobs(constraint), equalTo(4));
-        constraint.setExcludeGroups(Arrays.asList(new String[]{"group1"}));
-        assertThat("excluding groups should work",
-                jobQueue.countReadyJobs(constraint), equalTo(3));
-        constraint.setExcludeGroups(Arrays.asList(new String[]{"group3423"}));
-        assertThat("giving a non-existing group should not fool the count",
-                jobQueue.countReadyJobs(constraint), equalTo(4));
+        assertThat("when more than 1 job from same group is created, ready jobs should increment only by 1", jobQueue.countReadyJobs(constraint), equalTo(4));
+        constraint.setExcludeGroups(Arrays.asList("group1"));
+        assertThat("excluding groups should work", jobQueue.countReadyJobs(constraint), equalTo(3));
+        constraint.setExcludeGroups(Arrays.asList("group3423"));
+        assertThat("giving a non-existing group should not fool the count", jobQueue.countReadyJobs(constraint), equalTo(4));
         jobQueue.insert(createNewJobHolder(new Params(3).groupBy("group2")));
         constraint.clear();
         constraint.setTimeLimit(mockTimer.nanoTime());
@@ -618,31 +606,26 @@ public abstract class JobQueueTestBase extends TestBase {
                 jobQueue.countReadyJobs(constraint), equalTo(6));
         mockTimer.incrementMs(delay);
         constraint.setTimeLimit(mockTimer.nanoTime());
-        assertThat("when delay passes and a job from existing group becomes available, ready job count should not change",
-                jobQueue.countReadyJobs(constraint), equalTo(6));
-        constraint.setExcludeGroups(Arrays.asList(new String[]{"group1", "group3"}));
-        assertThat("when some groups are excluded, count should be correct",
-                jobQueue.countReadyJobs(constraint), equalTo(4));
+        assertThat("when delay passes and a job from existing group becomes available, ready job count should not change", jobQueue.countReadyJobs(constraint), equalTo(6));
+        constraint.setExcludeGroups(Arrays.asList("group1", "group3"));
+        assertThat("when some groups are excluded, count should be correct", jobQueue.countReadyJobs(constraint), equalTo(4));
 
         //jobs w/ same group id but with different persistence constraints should not fool the count
         now = mockTimer.nanoTime();
         constraint.setTimeLimit(mockTimer.nanoTime());
-        jobQueue.insert(createNewJobHolderWithDelayUntil(new Params(0).persist().groupBy("group10"), now + 1000));
         jobQueue.insert(createNewJobHolderWithDelayUntil(new Params(0).groupBy("group10"), now + 1000));
-        jobQueue.insert(createNewJobHolderWithDelayUntil(new Params(0).persist().groupBy("group10"), now - 1000));
+        jobQueue.insert(createNewJobHolderWithDelayUntil(new Params(0).groupBy("group10"), now + 1000));
         jobQueue.insert(createNewJobHolderWithDelayUntil(new Params(0).groupBy("group10"), now - 1000));
-        constraint.setExcludeGroups(Arrays.asList(new String[]{"group1", "group3"}));
-        assertThat("when many jobs are added w/ different constraints but same group id, ready count should not be fooled",
-                jobQueue.countReadyJobs(constraint), equalTo(5));
+        jobQueue.insert(createNewJobHolderWithDelayUntil(new Params(0).groupBy("group10"), now - 1000));
+        constraint.setExcludeGroups(Arrays.asList("group1", "group3"));
+        assertThat("when many jobs are added w/ different constraints but same group id, ready count should not be fooled", jobQueue.countReadyJobs(constraint), equalTo(5));
         constraint.clear();
         constraint.setExcludeRunning(true);
         constraint.setMaxNetworkType(NetworkUtil.UNMETERED);
-        assertThat("when many jobs are added w/ different constraints but same group id, ready count should not be fooled",
-                jobQueue.countReadyJobs(constraint), equalTo(7));
+        assertThat("when many jobs are added w/ different constraints but same group id, ready count should not be fooled", jobQueue.countReadyJobs(constraint), equalTo(7));
         constraint.setMaxNetworkType(NetworkUtil.DISCONNECTED);
-        constraint.setExcludeGroups(Arrays.asList(new String[]{"group1", "group3"}));
-        assertThat("when many jobs are added w/ different constraints but same group id, ready count should not be fooled",
-                jobQueue.countReadyJobs(constraint), equalTo(4));
+        constraint.setExcludeGroups(Arrays.asList("group1", "group3"));
+        assertThat("when many jobs are added w/ different constraints but same group id, ready count should not be fooled", jobQueue.countReadyJobs(constraint), equalTo(4));
     }
 
     @Test
@@ -684,7 +667,7 @@ public abstract class JobQueueTestBase extends TestBase {
         JobHolder[] holders = new JobHolder[LIMIT];
         String[] ids = new String[LIMIT];
         for (int i = 0; i < LIMIT; i++) {
-            holders[i] = createNewJobHolder(new Params((int) (Math.random() * 50)).setPersistent(Math.random() < .5).setRequiresNetwork(Math.random() < .5));
+            holders[i] = createNewJobHolder(new Params((int) (Math.random() * 50)).setRequiresNetwork(Math.random() < .5));
             ids[i] = holders[i].getId();
             jobQueue.insert(holders[i]);
             assertJob(jobQueue, "job by id should work for inserted job", ids[i], holders[i]);
@@ -1182,7 +1165,6 @@ public abstract class JobQueueTestBase extends TestBase {
                 .groupId(params.getGroupId())
                 .job(job)
                 .id(job.getId())
-                .persistent(params.isPersistent())
                 .tags(job.getTags())
                 .createdNs(timer.nanoTime())
                 .deadline(deadline > 0 ? timer.nanoTime() + deadline * JobManager.NS_PER_MS : Params.FOREVER, cancelOnDeadline)

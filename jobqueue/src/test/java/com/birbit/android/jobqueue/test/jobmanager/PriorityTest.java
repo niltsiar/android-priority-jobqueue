@@ -40,8 +40,8 @@ public class PriorityTest extends JobManagerTestBase {
     public void testPriority(JobManager jobManager, boolean persist) throws Exception {
         priorityRunLatch = new CountDownLatch(2);
         DummyJobWithRunOrderAssert.globalRunCount = new AtomicInteger(0);
-        Job job1 = new DummyJobWithRunOrderAssert(2, new Params(1).setPersistent(persist));
-        Job job2 = new DummyJobWithRunOrderAssert(1, new Params(2).setPersistent(persist));
+        Job job1 = new DummyJobWithRunOrderAssert(2, new Params(1));
+        Job job2 = new DummyJobWithRunOrderAssert(1, new Params(2));
         jobManager.stop();
         jobManager.addJob(job1);
         jobManager.addJob(job2);

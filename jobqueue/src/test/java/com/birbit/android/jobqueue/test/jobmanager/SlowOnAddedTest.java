@@ -37,7 +37,7 @@ public class SlowOnAddedTest extends JobManagerTestBase {
         JobManager jobManager = createJobManager();
         MyDummyPersistentJob.persistentJobLatch = new CountDownLatch(1);
         for(int i = 0; i < 50; i++) {
-            jobManager.addJob(new DummyJob(new Params(1).persist()));
+            jobManager.addJob(new DummyJob(new Params(1)));
         }
         jobManager.addJob(new MyDummyPersistentJob(2));
         MyDummyPersistentJob.persistentJobLatch.await();
@@ -51,7 +51,7 @@ public class SlowOnAddedTest extends JobManagerTestBase {
         private static int onAddedCountWhenOnRun = -1;
 
         protected MyDummyPersistentJob(int priority) {
-            super(new Params(priority).persist());
+            super(new Params(priority));
         }
 
         @Override

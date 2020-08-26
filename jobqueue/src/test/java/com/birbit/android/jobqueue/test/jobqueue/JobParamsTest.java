@@ -27,12 +27,9 @@ public class JobParamsTest extends TestBase {
         assertThat("require network param should be understood properly",
                 j2.getRequiredNetworkType(), equalTo(NetworkUtil.DISCONNECTED));
 
-        JobHolder j3 = JobQueueTestBase.createNewJobHolder(new Params(1).persist(), mockTimer);
-        assertThat("persist param should be understood properly", j3.persistent, equalTo(true));
-
-        JobHolder j4 = JobQueueTestBase.createNewJobHolder(new Params(1).setPersistent(false)
-                .setRequiresNetwork(false).setGroupId(null).setSingleId(null), mockTimer);
-        assertThat("persist param should be understood properly", j4.persistent, equalTo(false));
+        JobHolder j4 = JobQueueTestBase.createNewJobHolder(new Params(1).setRequiresNetwork(false)
+                                                                        .setGroupId(null)
+                                                                        .setSingleId(null), mockTimer);
         assertThat("require network param should be understood properly", j4.getRequiredNetworkType(), equalTo(NetworkUtil.DISCONNECTED));
 
         assertThat("group param should be understood properly", j4.groupId, nullValue());

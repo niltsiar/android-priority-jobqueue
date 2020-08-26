@@ -27,7 +27,7 @@ public class NonSerializableJobTest extends JobManagerTestBase {
                 latch.countDown();
             }
         });
-        jobManager.addJobInBackground(new DummyJob(new Params(0).persist()) {
+        jobManager.addJobInBackground(new DummyJob(new Params(0)) {
             final ICannotBeSerialized iCannotBeSerialized = new ICannotBeSerialized();
 
         });

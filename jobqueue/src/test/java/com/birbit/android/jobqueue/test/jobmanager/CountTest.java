@@ -29,9 +29,9 @@ public class CountTest extends JobManagerTestBase {
         JobManager jobManager = createJobManager();
         jobManager.stop();
         for (int i = 0; i < 10; i++) {
-            jobManager.addJob(new DummyJob(new Params(0).persist()));
+            jobManager.addJob(new DummyJob(new Params(0)));
             MatcherAssert.assertThat((int) jobManager.count(), equalTo(i * 2 + 1));
-            jobManager.addJob(new DummyJob(new Params(0).persist()));
+            jobManager.addJob(new DummyJob(new Params(0)));
             MatcherAssert.assertThat((int) jobManager.count(), equalTo(i * 2 + 2));
         }
         final CountDownLatch jobsToRun = new CountDownLatch(20);

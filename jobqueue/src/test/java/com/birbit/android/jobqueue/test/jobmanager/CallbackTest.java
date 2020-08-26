@@ -178,7 +178,7 @@ public class CallbackTest extends JobManagerTestBase {
 
     public static class PersistentDummyJob extends Job {
         public PersistentDummyJob() {
-            super(new Params(1).persist());
+            super(new Params(1));
         }
 
         @Override
