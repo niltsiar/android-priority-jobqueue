@@ -6,8 +6,6 @@ import androidx.annotation.Nullable;
 import com.birbit.android.jobqueue.log.JqLog;
 import com.birbit.android.jobqueue.network.NetworkUtil;
 import com.birbit.android.jobqueue.timer.Timer;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -25,31 +23,31 @@ abstract public class Job {
     /**
      * package
      **/
-    private transient String id;
+    private String id;
     // values set from params
     @NetworkUtil.NetworkStatus
-    transient int requiredNetworkType;
+    int requiredNetworkType;
     // values set after job is covered by a JobHolder
-    private transient String groupId;
-    private transient Set<String> readonlyTags;
+    private String groupId;
+    private Set<String> readonlyTags;
 
-    private transient int currentRunCount;
+    private int currentRunCount;
     /**
      * package
      **/
-    transient int priority;
-    private final transient long delayInMs;
-    private final transient long deadlineInMs;
-    private final transient boolean cancelOnDeadline;
-    /*package*/ transient volatile boolean cancelled;
+    int priority;
+    private final long delayInMs;
+    private final long deadlineInMs;
+    private final boolean cancelOnDeadline;
+    /*package*/ volatile boolean cancelled;
 
     // set when job is loaded
-    private transient Context applicationContext;
+    private Context applicationContext;
 
-    private transient volatile boolean sealed;
+    private volatile boolean sealed;
 
     // set when job is loaded
-    private transient volatile boolean isDeadlineReached;
+    private volatile boolean isDeadlineReached;
 
 
     protected Job(Params params) {
@@ -109,13 +107,6 @@ abstract public class Job {
     @Nullable
     public final Set<String> getTags() {
         return readonlyTags;
-    }
-
-    private void writeObject(ObjectOutputStream oos) throws IOException {
-        if (!sealed) {
-            throw new IllegalStateException("A job cannot be serialized w/o first being added into"
-                    + " a job manager.");
-        }
     }
 
     /**

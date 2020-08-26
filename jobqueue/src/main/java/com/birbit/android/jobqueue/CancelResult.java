@@ -6,16 +6,13 @@ import java.util.Collection;
  * This class holds the result of a cancel request via {@link JobManager#cancelJobs(TagConstraint, String...)}
  * or {@link JobManager#cancelJobsInBackground(CancelResult.AsyncCancelCallback, TagConstraint, String...)}.
  * <p>
- * Cancelling jobs is an expensive operation because it requires JobManager to deserializer the job
- * from databases and call onCancel method on it.
- * <p>
  * When cancelling jobs, if you need to get the list of cancelled jobs, you can provide this
  * callback to {@link JobManager#cancelJobsInBackground(CancelResult.AsyncCancelCallback, TagConstraint, String...)}
  * method.
  */
 public class CancelResult {
-    private Collection<Job> cancelledJobs;
-    private Collection<Job> failedToCancel;
+    private final Collection<Job> cancelledJobs;
+    private final Collection<Job> failedToCancel;
 
     public CancelResult(Collection<Job> cancelledJobs, Collection<Job> failedToCancel) {
         this.cancelledJobs = cancelledJobs;

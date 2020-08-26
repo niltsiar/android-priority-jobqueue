@@ -53,7 +53,7 @@ public class PriorityTest extends JobManagerTestBase {
     }
 
     public static class DummyJobWithRunOrderAssert extends Job {
-        transient public static AtomicInteger globalRunCount;
+        public static AtomicInteger globalRunCount;
         private final int expectedRunOrder;
 
         public DummyJobWithRunOrderAssert(int expectedRunOrder, Params params) {
