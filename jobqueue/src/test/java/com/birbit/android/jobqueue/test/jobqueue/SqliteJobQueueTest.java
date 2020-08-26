@@ -1,36 +1,30 @@
 package com.birbit.android.jobqueue.test.jobqueue;
 
 import android.database.Cursor;
-import androidx.core.util.Pair;
-
-import com.birbit.android.jobqueue.JobHolder;
-import com.birbit.android.jobqueue.TestConstraint;
 import com.birbit.android.jobqueue.Job;
+import com.birbit.android.jobqueue.JobHolder;
 import com.birbit.android.jobqueue.JobQueue;
 import com.birbit.android.jobqueue.Params;
+import com.birbit.android.jobqueue.TestConstraint;
 import com.birbit.android.jobqueue.config.Configuration;
-import com.birbit.android.jobqueue.persistentQueue.sqlite.DbOpenHelper;
 import com.birbit.android.jobqueue.persistentQueue.sqlite.SqliteJobQueue;
 import com.birbit.android.jobqueue.test.util.JobQueueFactory;
 import com.birbit.android.jobqueue.timer.Timer;
-
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.MatcherAssert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
-import org.robolectric.annotation.Config;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.hasItems;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 @RunWith(RobolectricTestRunner.class)
 

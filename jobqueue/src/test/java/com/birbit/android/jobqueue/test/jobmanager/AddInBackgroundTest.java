@@ -1,24 +1,21 @@
 package com.birbit.android.jobqueue.test.jobmanager;
 
-import com.birbit.android.jobqueue.JobManager;
-import com.birbit.android.jobqueue.JobManagerThreadRunnable;
 import com.birbit.android.jobqueue.AsyncAddCallback;
 import com.birbit.android.jobqueue.Job;
 import com.birbit.android.jobqueue.JobHolder;
+import com.birbit.android.jobqueue.JobManager;
+import com.birbit.android.jobqueue.JobManagerThreadRunnable;
 import com.birbit.android.jobqueue.Params;
 import com.birbit.android.jobqueue.test.jobs.DummyJob;
-
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicLong;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.MatcherAssert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.ParameterizedRobolectricTestRunner;
-import org.robolectric.annotation.Config;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicLong;
 
 @RunWith(ParameterizedRobolectricTestRunner.class)
 

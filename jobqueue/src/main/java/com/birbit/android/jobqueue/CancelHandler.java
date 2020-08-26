@@ -2,7 +2,6 @@ package com.birbit.android.jobqueue;
 
 import com.birbit.android.jobqueue.log.JqLog;
 import com.birbit.android.jobqueue.network.NetworkUtil;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Set;
@@ -25,7 +24,7 @@ class CancelHandler {
         failedToCancel = new ArrayList<>();
         this.callback = callback;
     }
-    
+
     void query(JobManagerThread jobManagerThread, ConsumerManager consumerManager) {
         running = consumerManager.markJobsCancelled(tagConstraint, tags);
         Constraint queryConstraint = jobManagerThread.queryConstraint;

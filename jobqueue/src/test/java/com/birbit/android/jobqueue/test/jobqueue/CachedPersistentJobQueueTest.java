@@ -5,10 +5,9 @@ import com.birbit.android.jobqueue.config.Configuration;
 import com.birbit.android.jobqueue.persistentQueue.sqlite.SqliteJobQueue;
 import com.birbit.android.jobqueue.test.util.JobQueueFactory;
 import com.birbit.android.jobqueue.timer.Timer;
-
 import org.junit.runner.RunWith;
-import org.robolectric.*;
-import org.robolectric.annotation.Config;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 
 @RunWith(RobolectricTestRunner.class)
 

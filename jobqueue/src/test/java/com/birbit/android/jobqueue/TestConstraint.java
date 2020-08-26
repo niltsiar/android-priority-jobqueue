@@ -1,8 +1,6 @@
 package com.birbit.android.jobqueue;
 
-import com.birbit.android.jobqueue.TagConstraint;
 import com.birbit.android.jobqueue.timer.Timer;
-
 import java.util.Collection;
 
 public class TestConstraint extends Constraint {

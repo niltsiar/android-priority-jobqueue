@@ -11,31 +11,23 @@ import com.birbit.android.jobqueue.messaging.message.CommandMessage;
 import com.birbit.android.jobqueue.messaging.message.JobConsumerIdleMessage;
 import com.birbit.android.jobqueue.messaging.message.RunJobMessage;
 import com.birbit.android.jobqueue.messaging.message.RunJobResultMessage;
-import com.birbit.android.jobqueue.JobHolder;
 import com.birbit.android.jobqueue.test.timer.MockTimer;
-
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.fest.reflect.core.Reflection;
 import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @RunWith(JUnit4.class)
 public class ConsumerTest {
     MessageFactory factory = new MessageFactory();
     MockTimer timer = new MockTimer();
 
-    private MessageQueueConsumer dummyConsumer = new MessageQueueConsumer() {
+    private final MessageQueueConsumer dummyConsumer = new MessageQueueConsumer() {
         @Override
         public void handleMessage(Message message) {
 

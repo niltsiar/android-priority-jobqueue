@@ -1,8 +1,7 @@
 package com.birbit.android.jobqueue.test.jobmanager;
 
-import androidx.annotation.NonNull;
 import android.util.Log;
-
+import androidx.annotation.NonNull;
 import com.birbit.android.jobqueue.CancelResult;
 import com.birbit.android.jobqueue.JobManager;
 import com.birbit.android.jobqueue.Params;
@@ -10,13 +9,6 @@ import com.birbit.android.jobqueue.RetryConstraint;
 import com.birbit.android.jobqueue.TagConstraint;
 import com.birbit.android.jobqueue.config.Configuration;
 import com.birbit.android.jobqueue.test.jobs.DummyJob;
-import static org.hamcrest.CoreMatchers.*;
-import org.hamcrest.*;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.*;
-import org.robolectric.annotation.Config;
-
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -25,6 +17,14 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.hamcrest.CoreMatchers;
+import org.hamcrest.MatcherAssert;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
+
+import static org.hamcrest.CoreMatchers.equalTo;
 
 @RunWith(RobolectricTestRunner.class)
 
@@ -91,7 +91,7 @@ public class MultiThreadTest extends JobManagerTestBase {
 
     }
     public static class DummyJobForMultiThread extends DummyJob {
-        private int id;
+        private final int id;
         private DummyJobForMultiThread(int id, Params params) {
             super(params);
             this.id = id;
@@ -119,7 +119,7 @@ public class MultiThreadTest extends JobManagerTestBase {
         protected RetryConstraint shouldReRunOnThrowable(@NonNull Throwable throwable, int runCount, int maxRunCount) {
             return RetryConstraint.RETRY;
         }
-    };
+    }
 
     @Override
     protected boolean canUseRealTimer() {

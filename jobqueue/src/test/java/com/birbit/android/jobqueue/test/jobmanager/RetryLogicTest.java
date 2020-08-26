@@ -2,10 +2,9 @@ package com.birbit.android.jobqueue.test.jobmanager;
 
 import android.annotation.TargetApi;
 import android.os.Build;
+import android.util.Pair;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import android.util.Pair;
-
 import com.birbit.android.jobqueue.CallbackManager;
 import com.birbit.android.jobqueue.CancelReason;
 import com.birbit.android.jobqueue.Job;
@@ -16,14 +15,6 @@ import com.birbit.android.jobqueue.RetryConstraint;
 import com.birbit.android.jobqueue.callback.JobManagerCallbackAdapter;
 import com.birbit.android.jobqueue.log.JqLog;
 import com.birbit.android.jobqueue.test.jobs.DummyJob;
-
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
-import org.robolectric.annotation.Config;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -33,6 +24,11 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
@@ -586,10 +582,10 @@ public class RetryLogicTest extends JobManagerTestBase {
     }
 
     interface Callback {
-        public void on(Job job);
+        void on(Job job);
     }
 
     interface CancelCallback {
-        public void on(Job job,@CancelReason int cancelReason, @Nullable Throwable throwable);
+        void on(Job job, @CancelReason int cancelReason, @Nullable Throwable throwable);
     }
 }

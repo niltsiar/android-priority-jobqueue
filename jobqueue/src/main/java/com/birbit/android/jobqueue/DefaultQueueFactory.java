@@ -1,9 +1,8 @@
 package com.birbit.android.jobqueue;
 
-import com.birbit.android.jobqueue.inMemoryQueue.SimpleInMemoryPriorityQueue;
-import com.birbit.android.jobqueue.*;
 import com.birbit.android.jobqueue.cachedQueue.CachedJobQueue;
 import com.birbit.android.jobqueue.config.Configuration;
+import com.birbit.android.jobqueue.inMemoryQueue.SimpleInMemoryPriorityQueue;
 import com.birbit.android.jobqueue.persistentQueue.sqlite.SqliteJobQueue;
 
 /**

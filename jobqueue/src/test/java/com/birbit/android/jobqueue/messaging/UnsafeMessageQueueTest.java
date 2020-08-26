@@ -1,32 +1,25 @@
 package com.birbit.android.jobqueue.messaging;
 
 import com.birbit.android.jobqueue.messaging.message.CommandMessage;
-
-import org.hamcrest.CoreMatchers;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
-
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.CoreMatchers.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.isNull;
-import static org.mockito.Matchers.same;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.CoreMatchers.sameInstance;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 @RunWith(JUnit4.class)
 public class UnsafeMessageQueueTest {
     UnsafeMessageQueue mq = new UnsafeMessageQueue(new MessageFactory(), "test");
     List<Long> items = Arrays.asList(1000L, 2000L, 3000L);
     Map<Long, Message> added = new HashMap<>();
-    
+
     @Test
     public void simplePost() {
         Message m = new CommandMessage();

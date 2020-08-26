@@ -3,17 +3,14 @@ package com.birbit.android.jobqueue.test.jobmanager;
 import com.birbit.android.jobqueue.JobManager;
 import com.birbit.android.jobqueue.Params;
 import com.birbit.android.jobqueue.test.jobs.DummyJob;
-
+import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.MatcherAssert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.annotation.Config;
-
-import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 @RunWith(RobolectricTestRunner.class)
 
@@ -31,7 +28,7 @@ public class NonSerializableJobTest extends JobManagerTestBase {
             }
         });
         jobManager.addJobInBackground(new DummyJob(new Params(0).persist()) {
-            ICannotBeSerialized iCannotBeSerialized = new ICannotBeSerialized();
+            final ICannotBeSerialized iCannotBeSerialized = new ICannotBeSerialized();
 
         });
         MatcherAssert.assertThat(latch.await(30, TimeUnit.SECONDS), CoreMatchers.is(true));

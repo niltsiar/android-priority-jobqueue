@@ -4,7 +4,6 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
 import com.birbit.android.jobqueue.DefaultQueueFactory;
 import com.birbit.android.jobqueue.JobQueue;
 import com.birbit.android.jobqueue.QueueFactory;
@@ -17,7 +16,6 @@ import com.birbit.android.jobqueue.persistentQueue.sqlite.SqliteJobQueue;
 import com.birbit.android.jobqueue.scheduling.Scheduler;
 import com.birbit.android.jobqueue.timer.SystemTimer;
 import com.birbit.android.jobqueue.timer.Timer;
-
 import java.util.concurrent.ThreadFactory;
 import java.util.regex.Pattern;
 
@@ -153,8 +151,8 @@ public class Configuration {
 
     @SuppressWarnings("unused")
     public static final class Builder {
-        private Pattern idRegex = Pattern.compile("^([A-Za-z]|[0-9]|_|-)+$");
-        private Configuration configuration;
+        private final Pattern idRegex = Pattern.compile("^([A-Za-z]|[0-9]|_|-)+$");
+        private final Configuration configuration;
 
         public Builder(@NonNull Context context) {
             this.configuration = new Configuration();
@@ -272,7 +270,7 @@ public class Configuration {
          * JobManager is suitable for DependencyInjection. Just provide your DependencyInjector and it will call it
          * before {Job#onAdded} method is called.
          * if job is persistent, it will also be called before run method.
-         * 
+         *
          * @param injector your dependency injector interface, if using one
          *
          * @return This Configuration for easy chaining

@@ -3,20 +3,14 @@ package com.birbit.android.jobqueue.test.util;
 import com.birbit.android.jobqueue.RunningJobSet;
 import com.birbit.android.jobqueue.test.timer.MockTimer;
 import com.birbit.android.jobqueue.timer.SystemTimer;
-import com.birbit.android.jobqueue.timer.Timer;
-
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.CoreMatchers.*;
-
+import java.util.Iterator;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.annotation.Config;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.concurrent.atomic.AtomicLong;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 @RunWith(RobolectricTestRunner.class)
 

@@ -10,16 +10,13 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.PersistableBundle;
 import androidx.annotation.NonNull;
-
 import com.birbit.android.jobqueue.network.NetworkUtil;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.annotation.Config;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;

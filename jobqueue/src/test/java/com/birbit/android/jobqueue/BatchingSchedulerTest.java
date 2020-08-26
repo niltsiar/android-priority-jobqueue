@@ -1,21 +1,22 @@
 package com.birbit.android.jobqueue;
 
 import android.content.Context;
-
-import com.birbit.android.jobqueue.BatchingScheduler;
+import com.birbit.android.jobqueue.network.NetworkUtil;
 import com.birbit.android.jobqueue.scheduling.Scheduler;
 import com.birbit.android.jobqueue.scheduling.SchedulerConstraint;
-import com.birbit.android.jobqueue.network.NetworkUtil;
 import com.birbit.android.jobqueue.test.timer.MockTimer;
-
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.MatcherAssert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import static org.mockito.Mockito.*;
+
 import static com.birbit.android.jobqueue.BatchingScheduler.DEFAULT_BATCHING_PERIOD_IN_MS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 @RunWith(JUnit4.class)
 public class BatchingSchedulerTest {
     BatchingScheduler bs;
