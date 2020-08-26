@@ -2,6 +2,7 @@ package com.birbit.android.jobqueue.test.jobmanager;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.test.core.app.ApplicationProvider;
 import com.birbit.android.jobqueue.CancelReason;
 import com.birbit.android.jobqueue.Job;
 import com.birbit.android.jobqueue.JobManager;
@@ -17,7 +18,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.ParameterizedRobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -66,10 +66,8 @@ public class DeadlineTest extends JobManagerTestBase {
     @Test
     public void deadlineTest() throws Exception {
         DummyNetworkUtil networkUtil = new DummyNetworkUtilWithConnectivityEventSupport();
-        JobManager jobManager = createJobManager(
-                new Configuration.Builder(RuntimeEnvironment.application)
-                        .networkUtil(networkUtil)
-                        .timer(mockTimer));
+        JobManager jobManager = createJobManager(new Configuration.Builder(ApplicationProvider.getApplicationContext()).networkUtil(networkUtil)
+                                                                                                                       .timer(mockTimer));
         networkUtil.setNetworkStatus(NetworkUtil.DISCONNECTED);
         Params params = new Params(0).setRequiresNetwork(reqNetwork)
                                      .setRequiresUnmeteredNetwork(reqUnmeteredNetwork)

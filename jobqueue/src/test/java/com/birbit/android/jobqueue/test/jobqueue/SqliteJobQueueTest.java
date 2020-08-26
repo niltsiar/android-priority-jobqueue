@@ -1,6 +1,7 @@
 package com.birbit.android.jobqueue.test.jobqueue;
 
 import android.database.Cursor;
+import androidx.test.core.app.ApplicationProvider;
 import com.birbit.android.jobqueue.Job;
 import com.birbit.android.jobqueue.JobHolder;
 import com.birbit.android.jobqueue.JobQueue;
@@ -20,7 +21,6 @@ import org.hamcrest.MatcherAssert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
 
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
@@ -34,10 +34,11 @@ public class SqliteJobQueueTest extends JobQueueTestBase {
             @Override
             public JobQueue createNew(long sessionId, String id, Timer timer) {
                 SqliteJobQueue.JavaSerializer serializer = new SqliteJobQueue.JavaSerializer();
-                return new SqliteJobQueue(
-                        new Configuration.Builder(RuntimeEnvironment.application)
-                                .id(id).jobSerializer(serializer).inTestMode()
-                                .timer(timer).build(), sessionId, serializer);
+                return new SqliteJobQueue(new Configuration.Builder(ApplicationProvider.getApplicationContext()).id(id)
+                                                                                                                .jobSerializer(serializer)
+                                                                                                                .inTestMode()
+                                                                                                                .timer(timer)
+                                                                                                                .build(), sessionId, serializer);
             }
         });
     }
@@ -94,15 +95,19 @@ public class SqliteJobQueueTest extends JobQueueTestBase {
             }
 
             @Override
-            public <T extends Job> T deserialize(byte[] bytes) throws IOException, ClassNotFoundException {
+            public <T extends Job> T deserialize(byte[] bytes) throws
+                                                               IOException,
+                                                               ClassNotFoundException {
                 calledForDeserialize.countDown();
                 return super.deserialize(bytes);
             }
         };
 
-        SqliteJobQueue jobQueue = new SqliteJobQueue(new Configuration.Builder(RuntimeEnvironment.application)
-                .id("__" + mockTimer.nanoTime()).jobSerializer(jobSerializer).inTestMode()
-                .timer(mockTimer).build(), mockTimer.nanoTime(), jobSerializer);
+        SqliteJobQueue jobQueue = new SqliteJobQueue(new Configuration.Builder(ApplicationProvider.getApplicationContext()).id("__" + mockTimer.nanoTime())
+                                                                                                                           .jobSerializer(jobSerializer)
+                                                                                                                           .inTestMode()
+                                                                                                                           .timer(mockTimer)
+                                                                                                                           .build(), mockTimer.nanoTime(), jobSerializer);
         jobQueue.insert(createNewJobHolder(new Params(0)));
         calledForSerialize.await(1, TimeUnit.SECONDS);
         MatcherAssert.assertThat("custom serializer should be called for serialize", (int) calledForSerialize.getCount(), CoreMatchers.equalTo(0));

@@ -2,6 +2,7 @@ package com.birbit.android.jobqueue.test.jobmanager;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.test.core.app.ApplicationProvider;
 import com.birbit.android.jobqueue.CancelReason;
 import com.birbit.android.jobqueue.Job;
 import com.birbit.android.jobqueue.JobManager;
@@ -25,7 +26,6 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.robolectric.ParameterizedRobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
 
 @RunWith(ParameterizedRobolectricTestRunner.class)
 
@@ -71,15 +71,12 @@ public class SchedulerSimpleTestCase extends JobManagerTestBase {
     @Test
     public void testScheduleWhenJobAdded() throws InterruptedException {
         Scheduler scheduler = Mockito.mock(Scheduler.class);
-        ArgumentCaptor<SchedulerConstraint> captor =
-                ArgumentCaptor.forClass(SchedulerConstraint.class);
-        DummyNetworkUtilWithConnectivityEventSupport networkUtil =
-                new DummyNetworkUtilWithConnectivityEventSupport();
-        Configuration.Builder builder = new Configuration.Builder(RuntimeEnvironment.application)
-                .timer(mockTimer)
-                .networkUtil(networkUtil)
-                .inTestMode()
-                .scheduler(scheduler, false);
+        ArgumentCaptor<SchedulerConstraint> captor = ArgumentCaptor.forClass(SchedulerConstraint.class);
+        DummyNetworkUtilWithConnectivityEventSupport networkUtil = new DummyNetworkUtilWithConnectivityEventSupport();
+        Configuration.Builder builder = new Configuration.Builder(ApplicationProvider.getApplicationContext()).timer(mockTimer)
+                                                                                                              .networkUtil(networkUtil)
+                                                                                                              .inTestMode()
+                                                                                                              .scheduler(scheduler, false);
         if (requireUnmeteredNetwork) {
             networkUtil.setNetworkStatus(NetworkUtil.UNMETERED);
         } else if (requireNetwork) {

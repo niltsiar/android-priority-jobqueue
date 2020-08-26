@@ -3,6 +3,7 @@ package com.birbit.android.jobqueue.test.jobmanager;
 import android.annotation.TargetApi;
 import android.os.Build;
 import androidx.annotation.NonNull;
+import androidx.test.core.app.ApplicationProvider;
 import com.birbit.android.jobqueue.Job;
 import com.birbit.android.jobqueue.JobHolder;
 import com.birbit.android.jobqueue.JobManager;
@@ -20,7 +21,6 @@ import org.hamcrest.MatcherAssert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
@@ -59,10 +59,10 @@ public class GroupingTest extends JobManagerTestBase {
     @Test
     public void testGroupingRaceCondition() throws Exception {
         DummyNetworkUtilWithConnectivityEventSupport dummyNetworkUtil = new DummyNetworkUtilWithConnectivityEventSupport();
-        JobManager jobManager = createJobManager(new Configuration.Builder(RuntimeEnvironment.application)
-                .minConsumerCount(5).maxConsumerCount(10)
-                .networkUtil(dummyNetworkUtil)
-                .timer(mockTimer));
+        JobManager jobManager = createJobManager(new Configuration.Builder(ApplicationProvider.getApplicationContext()).minConsumerCount(5)
+                                                                                                                       .maxConsumerCount(10)
+                                                                                                                       .networkUtil(dummyNetworkUtil)
+                                                                                                                       .timer(mockTimer));
         dummyNetworkUtil.setNetworkStatus(NetworkUtil.DISCONNECTED, true);
         //add a bunch of network requring jobs
         final String GROUP_ID = "shared_group_id";

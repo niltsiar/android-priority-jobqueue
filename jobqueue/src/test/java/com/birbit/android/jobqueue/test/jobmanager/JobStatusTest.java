@@ -3,6 +3,7 @@ package com.birbit.android.jobqueue.test.jobmanager;
 import android.annotation.TargetApi;
 import android.os.Build;
 import androidx.annotation.NonNull;
+import androidx.test.core.app.ApplicationProvider;
 import com.birbit.android.jobqueue.Job;
 import com.birbit.android.jobqueue.JobManager;
 import com.birbit.android.jobqueue.JobStatus;
@@ -19,7 +20,6 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -33,17 +33,16 @@ public class JobStatusTest extends JobManagerTestBase {
     public void testJobStatus() throws InterruptedException {
         DummyNetworkUtilWithConnectivityEventSupport networkUtil = new DummyNetworkUtilWithConnectivityEventSupport();
         networkUtil.setNetworkStatus(NetworkUtil.DISCONNECTED, true);
-        final JobManager jobManager = createJobManager(
-                new Configuration.Builder(RuntimeEnvironment.application).networkUtil(networkUtil)
-                        .timer(mockTimer));
+        final JobManager jobManager = createJobManager(new Configuration.Builder(ApplicationProvider.getApplicationContext()).networkUtil(networkUtil)
+                                                                                                                             .timer(mockTimer));
         jobManager.stop();
         List<Integer> networkRequiringJobIndices = new ArrayList<Integer>();
-        Job[] jobs = new Job[] {new DummyJob(new Params(0)), new DummyJob(new Params(0)), new DummyJob(new Params(0).requireNetwork()
-                                                                                                                    .addTags(REQ_NETWORK_TAG))
+        Job[] jobs = new Job[]{new DummyJob(new Params(0)), new DummyJob(new Params(0)), new DummyJob(new Params(0).requireNetwork()
+                                                                                                                   .addTags(REQ_NETWORK_TAG))
         };
         String[] ids = new String[jobs.length];
         networkRequiringJobIndices.add(2);
-        for(int i = 0; i < jobs.length; i ++) {
+        for (int i = 0; i < jobs.length; i++) {
             jobManager.addJob(jobs[i]);
             ids[i] = jobs[i].getId();
             JobStatus expectedStatus = (!networkUtil.isDisconnected() || !networkRequiringJobIndices.contains(i)) ? JobStatus.WAITING_READY :

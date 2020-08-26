@@ -3,6 +3,7 @@ package com.birbit.android.jobqueue.test.jobmanager;
 import android.annotation.TargetApi;
 import android.os.Build;
 import androidx.annotation.NonNull;
+import androidx.test.core.app.ApplicationProvider;
 import com.birbit.android.jobqueue.Job;
 import com.birbit.android.jobqueue.JobManager;
 import com.birbit.android.jobqueue.Params;
@@ -20,7 +21,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
@@ -41,10 +41,9 @@ public class KeepAliveTest extends JobManagerTestBase {
     @TargetApi(Build.VERSION_CODES.GINGERBREAD)
     public void testKeepAlive(final DummyNetworkUtil networkUtil) throws Exception {
         int keepAlive = 3;
-        final JobManager jobManager = createJobManager(new Configuration
-                .Builder(RuntimeEnvironment.application)
-                .consumerKeepAlive(keepAlive).networkUtil(networkUtil)
-                .timer(mockTimer));
+        final JobManager jobManager = createJobManager(new Configuration.Builder(ApplicationProvider.getApplicationContext()).consumerKeepAlive(keepAlive)
+                                                                                                                             .networkUtil(networkUtil)
+                                                                                                                             .timer(mockTimer));
         //give it a little time to create first consumer
         final CountDownLatch jobDone = new CountDownLatch(1);
         jobManager.addCallback(new JobManagerCallbackAdapter() {

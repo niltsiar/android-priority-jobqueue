@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.os.Build;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.test.core.app.ApplicationProvider;
 import com.birbit.android.jobqueue.CancelReason;
 import com.birbit.android.jobqueue.Job;
 import com.birbit.android.jobqueue.JobManager;
@@ -23,7 +24,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.ParameterizedRobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
@@ -69,10 +69,8 @@ public class NetworkJobTest extends JobManagerTestBase {
     public void testNetworkJobWithTimeout() throws InterruptedException {
         JobManagerTestBase.DummyNetworkUtil dummyNetworkUtil = new JobManagerTestBase.DummyNetworkUtil();
         dummyNetworkUtil.setNetworkStatus(NetworkUtil.DISCONNECTED);
-        final JobManager jobManager = createJobManager(
-                new Configuration.Builder(RuntimeEnvironment.application)
-                        .networkUtil(dummyNetworkUtil)
-                        .timer(mockTimer));
+        final JobManager jobManager = createJobManager(new Configuration.Builder(ApplicationProvider.getApplicationContext()).networkUtil(dummyNetworkUtil)
+                                                                                                                             .timer(mockTimer));
         final CountDownLatch runLatch = new CountDownLatch(1);
         DummyJob networkDummyJob = new DummyJob(addRequirement(new Params(1), 4)){
             @Override
@@ -93,12 +91,9 @@ public class NetworkJobTest extends JobManagerTestBase {
     public void testPersistentNetworkJobWithTimeout() throws InterruptedException {
         JobManagerTestBase.DummyNetworkUtil dummyNetworkUtil = new JobManagerTestBase.DummyNetworkUtil();
         dummyNetworkUtil.setNetworkStatus(NetworkUtil.DISCONNECTED);
-        final JobManager jobManager = createJobManager(
-                new Configuration.Builder(RuntimeEnvironment.application)
-                        .networkUtil(dummyNetworkUtil)
-                        .timer(mockTimer));
-        PersistentDummyJob networkDummyJob = new PersistentDummyJob(addRequirement(new Params(1),
-                4));
+        final JobManager jobManager = createJobManager(new Configuration.Builder(ApplicationProvider.getApplicationContext()).networkUtil(dummyNetworkUtil)
+                                                                                                                             .timer(mockTimer));
+        PersistentDummyJob networkDummyJob = new PersistentDummyJob(addRequirement(new Params(1), 4));
         jobManager.addJob(networkDummyJob);
         MatcherAssert.assertThat("job should not run",
                 persistentDummyJobRunLatch.await(3, TimeUnit.SECONDS), is(false));
@@ -112,10 +107,8 @@ public class NetworkJobTest extends JobManagerTestBase {
     public void testNetworkJob() throws Exception {
         enableDebug();
         JobManagerTestBase.DummyNetworkUtil dummyNetworkUtil = new JobManagerTestBase.DummyNetworkUtil();
-        final JobManager jobManager = createJobManager(
-                new Configuration.Builder(RuntimeEnvironment.application)
-                        .networkUtil(dummyNetworkUtil)
-                        .timer(mockTimer));
+        final JobManager jobManager = createJobManager(new Configuration.Builder(ApplicationProvider.getApplicationContext()).networkUtil(dummyNetworkUtil)
+                                                                                                                             .timer(mockTimer));
         jobManager.stop();
 
         DummyJob networkDummyJob = new DummyJob(addRequirement(new Params(5)));

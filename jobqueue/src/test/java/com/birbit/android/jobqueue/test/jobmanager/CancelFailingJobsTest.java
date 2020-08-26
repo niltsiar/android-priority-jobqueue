@@ -1,5 +1,6 @@
 package com.birbit.android.jobqueue.test.jobmanager;
 
+import androidx.test.core.app.ApplicationProvider;
 import com.birbit.android.jobqueue.CancelResult;
 import com.birbit.android.jobqueue.JobManager;
 import com.birbit.android.jobqueue.Params;
@@ -12,7 +13,6 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -47,9 +47,9 @@ public class CancelFailingJobsTest extends JobManagerTestBase {
     public void testCancelWithoutNetwork(boolean async, TagConstraint constraint)
             throws InterruptedException {
         final int jobCount = 30;
-        JobManager jobManager = createJobManager(
-                new Configuration.Builder(RuntimeEnvironment.application)
-                    .minConsumerCount(5).networkUtil(networkUtil).timer(mockTimer));
+        JobManager jobManager = createJobManager(new Configuration.Builder(ApplicationProvider.getApplicationContext()).minConsumerCount(5)
+                                                                                                                       .networkUtil(networkUtil)
+                                                                                                                       .timer(mockTimer));
         networkUtil.setNetworkStatus(NetworkUtil.DISCONNECTED, true);
         for (int i = 0; i < jobCount; i ++) {
             jobManager.addJob(new FailingJob(new Params(i).groupBy("group").addTags("tag")));
@@ -110,8 +110,8 @@ public class CancelFailingJobsTest extends JobManagerTestBase {
     static int latchCounter = 0;
     public void testCancelWithoutNetworkPersistent(boolean async, TagConstraint constraint)
             throws InterruptedException {
-        JobManager jobManager = createJobManager(new Configuration.Builder(RuntimeEnvironment.application).minConsumerCount(5)
-                                                                                                          .networkUtil(networkUtil));
+        JobManager jobManager = createJobManager(new Configuration.Builder(ApplicationProvider.getApplicationContext()).minConsumerCount(5)
+                                                                                                                       .networkUtil(networkUtil));
         networkUtil.setNetworkStatus(NetworkUtil.DISCONNECTED, true);
         jobManager.addJob(new DummyJob(new Params(1).groupBy("group")
                                                     .addTags("tag")));
@@ -156,7 +156,7 @@ public class CancelFailingJobsTest extends JobManagerTestBase {
         @Override
         public void onRun() throws Throwable {
             super.onRun();
-            if (networkUtil.getNetworkStatus(RuntimeEnvironment.application) == NetworkUtil.DISCONNECTED) {
+            if (networkUtil.getNetworkStatus(ApplicationProvider.getApplicationContext()) == NetworkUtil.DISCONNECTED) {
                 //noinspection SLEEP_IN_CODE
                 Thread.sleep(getCurrentRunCount() * 200);
                 throw new RuntimeException("I'm bad, i crash!");
@@ -174,7 +174,7 @@ public class CancelFailingJobsTest extends JobManagerTestBase {
         @Override
         public void onRun() throws Throwable {
             super.onRun();
-            if (networkUtil.getNetworkStatus(RuntimeEnvironment.application) == NetworkUtil.DISCONNECTED) {
+            if (networkUtil.getNetworkStatus(ApplicationProvider.getApplicationContext()) == NetworkUtil.DISCONNECTED) {
                 //noinspection SLEEP_IN_CODE
                 Thread.sleep(getCurrentRunCount() * 200);
                 throw new RuntimeException("I'm bad, i crash!");

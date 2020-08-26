@@ -1,5 +1,6 @@
 package com.birbit.android.jobqueue.test.jobmanager;
 
+import androidx.test.core.app.ApplicationProvider;
 import com.birbit.android.jobqueue.CancelResult;
 import com.birbit.android.jobqueue.JobManager;
 import com.birbit.android.jobqueue.Params;
@@ -12,7 +13,6 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -44,13 +44,10 @@ public class CancelWithNetworkToggleTest extends JobManagerTestBase {
 
     public void testCancelWithoutNetwork(boolean async, TagConstraint constraint)
             throws InterruptedException {
-        DummyNetworkUtilWithConnectivityEventSupport networkUtil = new
-                DummyNetworkUtilWithConnectivityEventSupport();
-        JobManager jobManager = createJobManager(
-                new Configuration.Builder(RuntimeEnvironment.application)
-                        .minConsumerCount(5)
-                        .networkUtil(networkUtil)
-                        .timer(mockTimer));
+        DummyNetworkUtilWithConnectivityEventSupport networkUtil = new DummyNetworkUtilWithConnectivityEventSupport();
+        JobManager jobManager = createJobManager(new Configuration.Builder(ApplicationProvider.getApplicationContext()).minConsumerCount(5)
+                                                                                                                       .networkUtil(networkUtil)
+                                                                                                                       .timer(mockTimer));
         networkUtil.setNetworkStatus(NetworkUtil.DISCONNECTED, true);
         jobManager.addJob(new DummyJob(new Params(1).requireNetwork().groupBy("group").addTags("tag")));
         jobManager.addJob(new DummyJob(new Params(2).requireNetwork().groupBy("group").addTags("tag")));
@@ -111,8 +108,8 @@ public class CancelWithNetworkToggleTest extends JobManagerTestBase {
     public void testCancelWithoutNetworkPersistent(boolean async, TagConstraint constraint)
             throws InterruptedException {
         DummyNetworkUtilWithConnectivityEventSupport networkUtil = new DummyNetworkUtilWithConnectivityEventSupport();
-        JobManager jobManager = createJobManager(new Configuration.Builder(RuntimeEnvironment.application).minConsumerCount(5)
-                                                                                                          .networkUtil(networkUtil));
+        JobManager jobManager = createJobManager(new Configuration.Builder(ApplicationProvider.getApplicationContext()).minConsumerCount(5)
+                                                                                                                       .networkUtil(networkUtil));
         networkUtil.setNetworkStatus(NetworkUtil.DISCONNECTED, true);
         jobManager.addJob(new DummyJob(new Params(1).requireNetwork()
                                                     .groupBy("group")

@@ -3,6 +3,7 @@ package com.birbit.android.jobqueue.test.jobmanager;
 import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.test.core.app.ApplicationProvider;
 import com.birbit.android.jobqueue.CancelReason;
 import com.birbit.android.jobqueue.Job;
 import com.birbit.android.jobqueue.JobManager;
@@ -15,7 +16,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.model.MultipleFailureException;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
 
 import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -69,8 +69,7 @@ public class ApplicationContextTests extends JobManagerTestBase {
         private void assertContext(String method) {
             Context applicationContext = getApplicationContext();
             try {
-                assertThat("Context should be application context in " + method,
-                        applicationContext, sameInstance((Context) RuntimeEnvironment.application));
+                assertThat("Context should be application context in " + method, applicationContext, sameInstance((Context) ApplicationProvider.getApplicationContext()));
             } catch (Throwable t) {
                 errors.add(t);
             }

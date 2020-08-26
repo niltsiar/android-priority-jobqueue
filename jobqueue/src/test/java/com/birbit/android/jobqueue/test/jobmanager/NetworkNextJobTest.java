@@ -1,5 +1,6 @@
 package com.birbit.android.jobqueue.test.jobmanager;
 
+import androidx.test.core.app.ApplicationProvider;
 import com.birbit.android.jobqueue.JobHolder;
 import com.birbit.android.jobqueue.JobManager;
 import com.birbit.android.jobqueue.Params;
@@ -10,7 +11,6 @@ import org.hamcrest.MatcherAssert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -23,10 +23,8 @@ public class NetworkNextJobTest extends JobManagerTestBase {
     @Test
     public void testNetworkNextJob() throws Throwable {
         DummyNetworkUtil dummyNetworkUtil = new DummyNetworkUtil();
-        JobManager jobManager = createJobManager(
-                new Configuration.Builder(RuntimeEnvironment.application)
-                        .networkUtil(dummyNetworkUtil)
-                        .timer(mockTimer));
+        JobManager jobManager = createJobManager(new Configuration.Builder(ApplicationProvider.getApplicationContext()).networkUtil(dummyNetworkUtil)
+                                                                                                                       .timer(mockTimer));
         jobManager.stop();
         DummyJob dummyJob = new DummyJob(new Params(0).requireNetwork());
         jobManager.addJob(dummyJob);

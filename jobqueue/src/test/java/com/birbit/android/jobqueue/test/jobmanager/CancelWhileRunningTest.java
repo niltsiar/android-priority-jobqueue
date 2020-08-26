@@ -1,5 +1,6 @@
 package com.birbit.android.jobqueue.test.jobmanager;
 
+import androidx.test.core.app.ApplicationProvider;
 import com.birbit.android.jobqueue.CancelResult;
 import com.birbit.android.jobqueue.Job;
 import com.birbit.android.jobqueue.JobManager;
@@ -13,7 +14,6 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -23,10 +23,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class CancelWhileRunningTest extends JobManagerTestBase {
     @Test
     public void testCancelBeforeRunning() throws InterruptedException {
-        JobManager jobManager = createJobManager(
-                new Configuration.Builder(RuntimeEnvironment.application)
-                        .minConsumerCount(5)
-                        .timer(mockTimer));
+        JobManager jobManager = createJobManager(new Configuration.Builder(ApplicationProvider.getApplicationContext()).minConsumerCount(5)
+                                                                                                                       .timer(mockTimer));
         JobWithEndLatch nonPersistent1 = new JobWithEndLatch(new Params(0).addTags("dummyTag"), true);
         JobWithEndLatch nonPersistent2 = new JobWithEndLatch(new Params(0).addTags("dummyTag"), false);
         DummyJob persistentJob1 = new PersistentJobWithEndLatch(new Params(0).addTags("dummyTag"), false);

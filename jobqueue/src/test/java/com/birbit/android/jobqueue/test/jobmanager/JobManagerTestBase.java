@@ -5,6 +5,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import androidx.annotation.NonNull;
+import androidx.test.core.app.ApplicationProvider;
 import com.birbit.android.jobqueue.BuildConfig;
 import com.birbit.android.jobqueue.Job;
 import com.birbit.android.jobqueue.JobHolder;
@@ -34,7 +35,6 @@ import org.hamcrest.CoreMatchers;
 import org.hamcrest.MatcherAssert;
 import org.junit.Rule;
 import org.junit.rules.Timeout;
-import org.robolectric.RuntimeEnvironment;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
@@ -57,12 +57,11 @@ public class JobManagerTestBase extends TestBase {
     }
 
     protected JobManager createJobManager() {
-        if(createdJobManagers.size() > 0) {
+        if (createdJobManagers.size() > 0) {
             throw new AssertionError("only 1 job manager per test");
         }
-        final JobManager jobManager = createJobManager(new Configuration.Builder(RuntimeEnvironment.application)
-            .timer(mockTimer)
-            .inTestMode());
+        final JobManager jobManager = createJobManager(new Configuration.Builder(ApplicationProvider.getApplicationContext()).timer(mockTimer)
+                                                                                                                             .inTestMode());
         createdJobManagers.add(jobManager);
         return jobManager;
     }

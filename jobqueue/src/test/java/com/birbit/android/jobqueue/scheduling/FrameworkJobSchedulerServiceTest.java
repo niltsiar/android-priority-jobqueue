@@ -4,12 +4,12 @@ import android.annotation.TargetApi;
 import android.app.job.JobParameters;
 import android.os.Build;
 import androidx.annotation.NonNull;
+import androidx.test.core.app.ApplicationProvider;
 import com.birbit.android.jobqueue.JobManager;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -36,16 +36,13 @@ public class FrameworkJobSchedulerServiceTest {
 
     @Test
     public void createScheduler() {
-        FrameworkScheduler scheduler = FrameworkJobSchedulerService
-                .createSchedulerFor(RuntimeEnvironment.application,
-                        FrameworkJobSchedulerServiceImpl.class);
+        FrameworkScheduler scheduler = FrameworkJobSchedulerService.createSchedulerFor(ApplicationProvider.getApplicationContext(), FrameworkJobSchedulerServiceImpl.class);
         assertThat(scheduler.serviceImpl == FrameworkJobSchedulerServiceImpl.class, is(true));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void createBadScheduler() {
-        FrameworkJobSchedulerService.createSchedulerFor(RuntimeEnvironment.application,
-                FrameworkJobSchedulerService.class);
+        FrameworkJobSchedulerService.createSchedulerFor(ApplicationProvider.getApplicationContext(), FrameworkJobSchedulerService.class);
     }
 
     @Test

@@ -2,6 +2,7 @@ package com.birbit.android.jobqueue.test.jobmanager;
 
 import android.annotation.SuppressLint;
 import androidx.annotation.NonNull;
+import androidx.test.core.app.ApplicationProvider;
 import com.birbit.android.jobqueue.Constraint;
 import com.birbit.android.jobqueue.Job;
 import com.birbit.android.jobqueue.JobManager;
@@ -22,7 +23,6 @@ import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
@@ -38,27 +38,26 @@ public class LoadFactorTest extends JobManagerTestBase {
     public void testGoIdleIfNextJobCannotBeRunNow() throws InterruptedException {
         // see: https://github.com/yigit/android-priority-jobqueue/issues/262
         final AtomicInteger nextJobDelayCall = new AtomicInteger(1);
-        JobManager jobManager = createJobManager(new Configuration.Builder(RuntimeEnvironment.application)
-                .maxConsumerCount(3)
-                .minConsumerCount(1)
-                .loadFactor(3)
-                .queueFactory(new QueueFactory() {
-                    @Override
-                    public JobQueue createPersistentQueue(Configuration configuration,
-                            long sessionId) {
-                        return new SqliteJobQueue(configuration, sessionId, new SqliteJobQueue
-                                .JavaSerializer());
-                    }
+        JobManager jobManager = createJobManager(new Configuration.Builder(ApplicationProvider.getApplicationContext()).maxConsumerCount(3)
+                                                                                                                       .minConsumerCount(1)
+                                                                                                                       .loadFactor(3)
+                                                                                                                       .queueFactory(new QueueFactory() {
+                                                                                                                           @Override
+                                                                                                                           public JobQueue createPersistentQueue(Configuration configuration,
+                                                                                                                                   long sessionId) {
+                                                                                                                               return new SqliteJobQueue(configuration, sessionId,
+                                                                                                                                                         new SqliteJobQueue.JavaSerializer());
+                                                                                                                           }
 
-                    @Override
-                    public JobQueue createNonPersistent(Configuration configuration,
-                            long sessionId) {
-                        return new SimpleInMemoryPriorityQueue(configuration, sessionId) {
-                            @Override
-                            public Long getNextJobDelayUntilNs(@NonNull Constraint constraint) {
-                                nextJobDelayCall.incrementAndGet();
-                                return super.getNextJobDelayUntilNs(constraint);
-                            }
+                                                                                                                           @Override
+                                                                                                                           public JobQueue createNonPersistent(Configuration configuration,
+                                                                                                                                   long sessionId) {
+                                                                                                                               return new SimpleInMemoryPriorityQueue(configuration, sessionId) {
+                                                                                                                                   @Override
+                                                                                                                                   public Long getNextJobDelayUntilNs(@NonNull Constraint constraint) {
+                                                                                                                                       nextJobDelayCall.incrementAndGet();
+                                                                                                                                       return super.getNextJobDelayUntilNs(constraint);
+                                                                                                                                   }
                         };
                     }
                 })
@@ -98,11 +97,10 @@ public class LoadFactorTest extends JobManagerTestBase {
         int minConsumerCount = 2;
         int loadFactor = 5;
         enableDebug();
-        JobManager jobManager = createJobManager(new Configuration.Builder(RuntimeEnvironment.application)
-                .maxConsumerCount(maxConsumerCount)
-                .minConsumerCount(minConsumerCount)
-                .loadFactor(loadFactor)
-                .timer(mockTimer));
+        JobManager jobManager = createJobManager(new Configuration.Builder(ApplicationProvider.getApplicationContext()).maxConsumerCount(maxConsumerCount)
+                                                                                                                       .minConsumerCount(minConsumerCount)
+                                                                                                                       .loadFactor(loadFactor)
+                                                                                                                       .timer(mockTimer));
         final CountDownLatch runLock = new CountDownLatch(1);
         Semaphore semaphore = new Semaphore(maxConsumerCount);
         int totalJobCount = loadFactor * maxConsumerCount * 5;
@@ -110,7 +108,7 @@ public class LoadFactorTest extends JobManagerTestBase {
         int prevConsumerCount = 0;
         final Semaphore onRunCount = new Semaphore(totalJobCount);
         onRunCount.acquire(totalJobCount);
-        for(int i = 0; i < totalJobCount; i ++) {
+        for (int i = 0; i < totalJobCount; i++) {
 
             DummyJob job =
                     new NeverEndingDummyJob(new Params((int)(Math.random() * 3)),runLock, semaphore) {

@@ -1,5 +1,6 @@
 package com.birbit.android.jobqueue.test.jobmanager;
 
+import androidx.test.core.app.ApplicationProvider;
 import com.birbit.android.jobqueue.CancelResult;
 import com.birbit.android.jobqueue.JobManager;
 import com.birbit.android.jobqueue.Params;
@@ -11,7 +12,6 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -23,10 +23,10 @@ public class CancelWhileRunningWithGroupsTest extends JobManagerTestBase {
     public static CountDownLatch[] startLatches = new CountDownLatch[]{new CountDownLatch(2), new CountDownLatch(2)};
     @Test
     public void testCancelBeforeRunning() throws InterruptedException {
-        JobManager jobManager = createJobManager(
-                new Configuration.Builder(RuntimeEnvironment.application)
-                        .minConsumerCount(5).timer(mockTimer));
-        DummyJobWithLatches nonPersistentJob = new DummyJobWithLatches(0, new Params(1).addTags("dummyTag").groupBy("group1"));
+        JobManager jobManager = createJobManager(new Configuration.Builder(ApplicationProvider.getApplicationContext()).minConsumerCount(5)
+                                                                                                                       .timer(mockTimer));
+        DummyJobWithLatches nonPersistentJob = new DummyJobWithLatches(0, new Params(1).addTags("dummyTag")
+                                                                                       .groupBy("group1"));
         jobManager.addJob(nonPersistentJob);
         DummyJobWithLatches persistentJob = new DummyJobWithLatches(0, new Params(1).addTags("dummyTag")
                                                                                     .groupBy("group2"));

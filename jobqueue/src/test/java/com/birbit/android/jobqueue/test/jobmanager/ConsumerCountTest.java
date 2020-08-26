@@ -1,5 +1,6 @@
 package com.birbit.android.jobqueue.test.jobmanager;
 
+import androidx.test.core.app.ApplicationProvider;
 import com.birbit.android.jobqueue.JobManager;
 import com.birbit.android.jobqueue.Params;
 import com.birbit.android.jobqueue.config.Configuration;
@@ -15,7 +16,6 @@ import org.hamcrest.MatcherAssert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
@@ -27,11 +27,9 @@ public class ConsumerCountTest extends JobManagerTestBase {
     @Test
     public void testMaxConsumerCount() throws Exception {
         int maxConsumerCount = 2;
-        JobManager jobManager = createJobManager(
-                new Configuration.Builder(RuntimeEnvironment.application)
-                        .maxConsumerCount(maxConsumerCount)
-                        .loadFactor(maxConsumerCount)
-                        .timer(mockTimer));
+        JobManager jobManager = createJobManager(new Configuration.Builder(ApplicationProvider.getApplicationContext()).maxConsumerCount(maxConsumerCount)
+                                                                                                                       .loadFactor(maxConsumerCount)
+                                                                                                                       .timer(mockTimer));
 
         Semaphore semaphore = new Semaphore(maxConsumerCount);
         int totalJobCount = maxConsumerCount * 3;

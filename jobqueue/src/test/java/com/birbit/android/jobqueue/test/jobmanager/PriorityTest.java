@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.os.Build;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.test.core.app.ApplicationProvider;
 import com.birbit.android.jobqueue.CancelReason;
 import com.birbit.android.jobqueue.Job;
 import com.birbit.android.jobqueue.JobManager;
@@ -17,7 +18,6 @@ import org.hamcrest.MatcherAssert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
@@ -29,10 +29,8 @@ public class PriorityTest extends JobManagerTestBase {
 
     @Test
     public void testPriority() throws Exception {
-        JobManager jobManager = createJobManager(
-                new Configuration.Builder(RuntimeEnvironment.application)
-                        .maxConsumerCount(1)
-                        .timer(mockTimer));
+        JobManager jobManager = createJobManager(new Configuration.Builder(ApplicationProvider.getApplicationContext()).maxConsumerCount(1)
+                                                                                                                       .timer(mockTimer));
         testPriority(jobManager, false);
     }
 
@@ -52,7 +50,7 @@ public class PriorityTest extends JobManagerTestBase {
     }
 
     public static class DummyJobWithRunOrderAssert extends Job {
-        transient public static AtomicInteger globalRunCount;
+        public static AtomicInteger globalRunCount;
         private final int expectedRunOrder;
 
         public DummyJobWithRunOrderAssert(int expectedRunOrder, Params params) {

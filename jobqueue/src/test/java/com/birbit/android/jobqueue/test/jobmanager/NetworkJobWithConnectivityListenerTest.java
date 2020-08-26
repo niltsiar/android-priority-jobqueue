@@ -1,5 +1,6 @@
 package com.birbit.android.jobqueue.test.jobmanager;
 
+import androidx.test.core.app.ApplicationProvider;
 import com.birbit.android.jobqueue.Job;
 import com.birbit.android.jobqueue.JobManager;
 import com.birbit.android.jobqueue.Params;
@@ -11,7 +12,6 @@ import org.hamcrest.MatcherAssert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 
@@ -21,10 +21,8 @@ public class NetworkJobWithConnectivityListenerTest extends JobManagerTestBase {
     @Test
     public void testNetworkJobWithConnectivityListener() throws Exception {
         final DummyNetworkUtilWithConnectivityEventSupport dummyNetworkUtil = new DummyNetworkUtilWithConnectivityEventSupport();
-        final JobManager jobManager = createJobManager(
-                new Configuration.Builder(RuntimeEnvironment.application)
-                        .networkUtil(dummyNetworkUtil)
-                        .timer(mockTimer));
+        final JobManager jobManager = createJobManager(new Configuration.Builder(ApplicationProvider.getApplicationContext()).networkUtil(dummyNetworkUtil)
+                                                                                                                             .timer(mockTimer));
         dummyNetworkUtil.setNetworkStatus(NetworkUtil.DISCONNECTED, true);
         final DummyJob dummyJob = new DummyJob(new Params(0).requireNetwork());
         jobManager.addJob(dummyJob);

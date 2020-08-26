@@ -1,6 +1,7 @@
 package com.birbit.android.jobqueue.test.jobmanager;
 
 import androidx.annotation.NonNull;
+import androidx.test.core.app.ApplicationProvider;
 import com.birbit.android.jobqueue.Job;
 import com.birbit.android.jobqueue.JobManager;
 import com.birbit.android.jobqueue.Params;
@@ -13,7 +14,6 @@ import org.hamcrest.MatcherAssert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
@@ -44,11 +44,9 @@ public class DelayedRunTest extends JobManagerTestBase {
 
     @Test
     public void testDelayWith0Consumers() throws InterruptedException {
-        JobManager jobManager = createJobManager(
-                new Configuration.Builder(RuntimeEnvironment.application)
-                        .minConsumerCount(0)
-                        .maxConsumerCount(3)
-                        .timer(mockTimer));
+        JobManager jobManager = createJobManager(new Configuration.Builder(ApplicationProvider.getApplicationContext()).minConsumerCount(0)
+                                                                                                                       .maxConsumerCount(3)
+                                                                                                                       .timer(mockTimer));
         final CountDownLatch latch = new CountDownLatch(1);
         final DummyJob dummyJob = new DummyJob(new Params(0).delayInMs(2000)) {
             @Override

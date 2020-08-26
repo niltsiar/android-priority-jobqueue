@@ -2,6 +2,7 @@ package com.birbit.android.jobqueue.test.jobmanager;
 
 import android.util.Log;
 import androidx.annotation.NonNull;
+import androidx.test.core.app.ApplicationProvider;
 import com.birbit.android.jobqueue.CancelResult;
 import com.birbit.android.jobqueue.JobManager;
 import com.birbit.android.jobqueue.Params;
@@ -22,7 +23,6 @@ import org.hamcrest.MatcherAssert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 
@@ -39,13 +39,13 @@ public class MultiThreadTest extends JobManagerTestBase {
     @Test
     public void testMultiThreaded() throws Exception {
         multiThreadedJobCounter = new AtomicInteger(0);
-        final JobManager jobManager = createJobManager(new Configuration.Builder(RuntimeEnvironment.application)
-            .loadFactor(3).maxConsumerCount(10));
+        final JobManager jobManager = createJobManager(new Configuration.Builder(ApplicationProvider.getApplicationContext()).loadFactor(3)
+                                                                                                                             .maxConsumerCount(10));
         int limit = 200;
         ExecutorService executor = new ThreadPoolExecutor(20, 20, 60, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(limit));
         final String cancelTag = "iWillBeCancelled";
         Collection<Future<?>> futures = new LinkedList<Future<?>>();
-        for(int i = 0; i < limit; i++) {
+        for (int i = 0; i < limit; i++) {
             final int id = i;
             futures.add(executor.submit(new Runnable() {
                 @Override

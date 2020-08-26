@@ -2,6 +2,7 @@ package com.birbit.android.jobqueue.test.jobmanager;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.test.core.app.ApplicationProvider;
 import com.birbit.android.jobqueue.CancelReason;
 import com.birbit.android.jobqueue.Job;
 import com.birbit.android.jobqueue.JobManager;
@@ -14,7 +15,6 @@ import org.hamcrest.MatcherAssert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
 
 @RunWith(RobolectricTestRunner.class)
 
@@ -24,16 +24,13 @@ public class ThreadFactoryTest extends JobManagerTestBase {
 
     @Test
     public void testThreadFactory() throws Throwable {
-        final JobManager jobManager = createJobManager(
-                new Configuration.Builder(RuntimeEnvironment.application)
-                        .timer(mockTimer)
-                        .threadFactory(new ThreadFactory() {
-                            @Override
-                            public Thread newThread(@NonNull Runnable r) {
-                                return new DummyThread(r);
-                            }
-                        })
-        );
+        final JobManager jobManager = createJobManager(new Configuration.Builder(ApplicationProvider.getApplicationContext()).timer(mockTimer)
+                                                                                                                             .threadFactory(new ThreadFactory() {
+                                                                                                                                 @Override
+                                                                                                                                 public Thread newThread(@NonNull Runnable r) {
+                                                                                                                                     return new DummyThread(r);
+                                                                                                                                 }
+                                                                                                                             }));
         final Job job = new CheckWorkerJob();
         waitUntilAJobIsDone(jobManager, new WaitUntilCallback() {
             @Override
