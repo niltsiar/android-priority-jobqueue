@@ -6,12 +6,10 @@ import com.birbit.android.jobqueue.messaging.message.CancelMessage;
 import com.birbit.android.jobqueue.messaging.message.CancelResultMessage;
 import com.birbit.android.jobqueue.messaging.message.CommandMessage;
 import com.birbit.android.jobqueue.messaging.message.ConstraintChangeMessage;
-import com.birbit.android.jobqueue.messaging.message.PublicQueryMessage;
 import com.birbit.android.jobqueue.messaging.message.JobConsumerIdleMessage;
+import com.birbit.android.jobqueue.messaging.message.PublicQueryMessage;
 import com.birbit.android.jobqueue.messaging.message.RunJobMessage;
 import com.birbit.android.jobqueue.messaging.message.RunJobResultMessage;
-import com.birbit.android.jobqueue.messaging.message.SchedulerMessage;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,8 +26,7 @@ public enum Type {
     ADD_JOB(AddJobMessage.class, 1),
     CANCEL(CancelMessage.class, 1),
     CONSTRAINT_CHANGE(ConstraintChangeMessage.class, 2),
-    RUN_JOB_RESULT(RunJobResultMessage.class, 3),
-    SCHEDULER(SchedulerMessage.class, 4);
+    RUN_JOB_RESULT(RunJobResultMessage.class, 3);
     final Class<? extends Message> klass;
     final static Map<Class<? extends Message>, Type> mapping;
     final int priority; // higher is better
@@ -39,6 +36,7 @@ public enum Type {
         this.klass = klass;
         this.priority = priority;
     }
+
     static {
         int maxPriority = 0;
         mapping = new HashMap<>();

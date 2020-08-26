@@ -17,18 +17,13 @@ import com.birbit.android.jobqueue.messaging.message.ConstraintChangeMessage;
 import com.birbit.android.jobqueue.messaging.message.JobConsumerIdleMessage;
 import com.birbit.android.jobqueue.messaging.message.PublicQueryMessage;
 import com.birbit.android.jobqueue.messaging.message.RunJobResultMessage;
-import com.birbit.android.jobqueue.messaging.message.SchedulerMessage;
 import com.birbit.android.jobqueue.network.NetworkEventProvider;
 import com.birbit.android.jobqueue.network.NetworkUtil;
-import com.birbit.android.jobqueue.scheduling.Scheduler;
-import com.birbit.android.jobqueue.scheduling.SchedulerConstraint;
 import com.birbit.android.jobqueue.timer.Timer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 class JobManagerThread implements Runnable, NetworkEventProvider.Listener {
     public static final long NS_PER_MS = 1000000;
@@ -46,8 +41,6 @@ class JobManagerThread implements Runnable, NetworkEventProvider.Listener {
     final ConsumerManager consumerManager;
     @Nullable
     private List<CancelHandler> pendingCancelHandlers;
-    @Nullable
-    private List<SchedulerConstraint> pendingSchedulerCallbacks;
     final Constraint queryConstraint = new Constraint();
 
     final CallbackManager callbackManager;
@@ -58,13 +51,11 @@ class JobManagerThread implements Runnable, NetworkEventProvider.Listener {
      * cancelAll. It is not precise, does not cover scheduling across reboots but a fair compromise
      * for simplicity.
      */
-    private boolean shouldCancelAllScheduledWhenEmpty = false;
+    private final boolean shouldCancelAllScheduledWhenEmpty = false;
     // see https://github.com/yigit/android-priority-jobqueue/issues/262
     private boolean canScheduleConstraintChangeOnIdle = true;
 
     final PriorityMessageQueue messageQueue;
-    @Nullable
-    Scheduler scheduler;
 
     JobManagerThread(Configuration config, PriorityMessageQueue messageQueue, MessageFactory messageFactory) {
         this.messageQueue = messageQueue;
@@ -75,10 +66,6 @@ class JobManagerThread implements Runnable, NetworkEventProvider.Listener {
         timer = config.getTimer();
         appContext = config.getAppContext();
         sessionId = timer.nanoTime();
-        scheduler = config.getScheduler();
-        if (scheduler != null && config.batchSchedulerRequests() && !(scheduler instanceof BatchingScheduler)) {
-            scheduler = new BatchingScheduler(scheduler, timer);
-        }
         this.nonPersistentJobQueue = config.getQueueFactory()
                                            .createNonPersistent(config, sessionId);
         networkUtil = config.getNetworkUtil();
@@ -154,30 +141,6 @@ class JobManagerThread implements Runnable, NetworkEventProvider.Listener {
         }
     }
 
-    private void scheduleWakeUpFor(JobHolder holder, long now) {
-        if (scheduler == null) {
-            return;
-        }
-        int requiredNetwork = holder.requiredNetworkType;
-        long delayUntilNs = holder.getDelayUntilNs();
-        long deadlineNs = holder.getDeadlineNs();
-        long delay = delayUntilNs > now ? TimeUnit.NANOSECONDS.toMillis(delayUntilNs - now) : 0;
-        Long deadline = deadlineNs != Params.FOREVER ? TimeUnit.NANOSECONDS.toMillis(deadlineNs - now) : null;
-        boolean hasLargeDelay = delayUntilNs > now && delay >= JobManager.MIN_DELAY_TO_USE_SCHEDULER_IN_MS;
-        boolean hasLargeDeadline = deadline != null && deadline >= JobManager.MIN_DELAY_TO_USE_SCHEDULER_IN_MS;
-        if (requiredNetwork == NetworkUtil.DISCONNECTED && !hasLargeDelay && !hasLargeDeadline) {
-            return;
-        }
-
-        SchedulerConstraint constraint = new SchedulerConstraint(UUID.randomUUID()
-                                                                     .toString());
-        constraint.setNetworkStatus(requiredNetwork);
-        constraint.setDelayInMs(delay);
-        constraint.setOverrideDeadlineInMs(deadline);
-        scheduler.request(constraint);
-        shouldCancelAllScheduledWhenEmpty = true;
-    }
-
     /**
      * Returns a queued job with the same single id. If any matching non-running job is found,
      * that one is returned. Otherwise any matching running job will be returned.
@@ -213,10 +176,7 @@ class JobManagerThread implements Runnable, NetworkEventProvider.Listener {
                         handleAddJob((AddJobMessage) message);
                         break;
                     case JOB_CONSUMER_IDLE:
-                        boolean busy = consumerManager.handleIdle((JobConsumerIdleMessage) message);
-                        if (!busy) {
-                            invokeSchedulersIfIdle();
-                        }
+                        consumerManager.handleIdle((JobConsumerIdleMessage) message);
                         break;
                     case RUN_JOB_RESULT:
                         handleRunJobResult((RunJobResultMessage) message);
@@ -234,9 +194,6 @@ class JobManagerThread implements Runnable, NetworkEventProvider.Listener {
                         break;
                     case COMMAND:
                         handleCommand((CommandMessage) message);
-                        break;
-                    case SCHEDULER:
-                        handleSchedulerMessage((SchedulerMessage) message);
                         break;
                 }
             }
@@ -259,91 +216,9 @@ class JobManagerThread implements Runnable, NetworkEventProvider.Listener {
                     ConstraintChangeMessage constraintMessage = messageFactory.obtain(ConstraintChangeMessage.class);
                     constraintMessage.setForNextJob(true);
                     messageQueue.postAt(constraintMessage, nextJobTimeNs);
-                } else if (scheduler != null) {
-                    // if we have a scheduler but the queue is empty, just clean them all.
-                    if (shouldCancelAllScheduledWhenEmpty) {
-                        shouldCancelAllScheduledWhenEmpty = false;
-                        scheduler.cancelAll();
-                    }
                 }
             }
         });
-    }
-
-    private void invokeSchedulersIfIdle() {
-        if (scheduler == null || pendingSchedulerCallbacks == null || pendingSchedulerCallbacks.isEmpty() || !consumerManager.areAllConsumersIdle()) {
-            return;
-        }
-        for (int i = pendingSchedulerCallbacks.size() - 1; i >= 0; i--) {
-            SchedulerConstraint constraint = pendingSchedulerCallbacks.remove(i);
-            boolean reschedule = hasJobsWithSchedulerConstraint(constraint);
-            scheduler.onFinished(constraint, reschedule);
-        }
-    }
-
-    private void handleSchedulerMessage(SchedulerMessage message) {
-        final int what = message.getWhat();
-        if (what == SchedulerMessage.START) {
-            handleSchedulerStart(message.getConstraint());
-        } else if (what == SchedulerMessage.STOP) {
-            handleSchedulerStop(message.getConstraint());
-        } else {
-            throw new IllegalArgumentException("Unknown scheduler message with what " + what);
-        }
-    }
-
-    private boolean hasJobsWithSchedulerConstraint(SchedulerConstraint constraint) {
-        if (consumerManager.hasJobsWithSchedulerConstraint(constraint)) {
-            return true;
-        }
-
-        queryConstraint.clear();
-        queryConstraint.setNowInNs(timer.nanoTime());
-        queryConstraint.setMaxNetworkType(constraint.getNetworkStatus());
-        return false;
-    }
-
-    private void handleSchedulerStop(SchedulerConstraint constraint) {
-        final List<SchedulerConstraint> pendingCallbacks = this.pendingSchedulerCallbacks;
-        if (pendingCallbacks != null) {
-            for (int i = pendingCallbacks.size() - 1; i >= 0; i--) {
-                SchedulerConstraint pendingConstraint = pendingCallbacks.get(i);
-                if (pendingConstraint.getUuid()
-                                     .equals(constraint.getUuid())) {
-                    pendingCallbacks.remove(i);
-                }
-            }
-        }
-        if (scheduler == null) {
-            return;//nothing to do
-        }
-        final boolean hasMatchingJobs = hasJobsWithSchedulerConstraint(constraint);
-        if (hasMatchingJobs) {
-            // reschedule
-            scheduler.request(constraint);
-        }
-    }
-
-    private void handleSchedulerStart(SchedulerConstraint constraint) {
-        if (!isRunning()) {
-            if (scheduler != null) {
-                scheduler.onFinished(constraint, true);
-            }
-            return;
-        }
-        boolean hasMatchingJobs = hasJobsWithSchedulerConstraint(constraint);
-        if (!hasMatchingJobs) {
-            if (scheduler != null) {
-                scheduler.onFinished(constraint, false);
-            }
-            return;
-        }
-        if (pendingSchedulerCallbacks == null) {
-            pendingSchedulerCallbacks = new ArrayList<>();
-        }
-        // add this to callbacks to be invoked when job runs
-        pendingSchedulerCallbacks.add(constraint);
-        consumerManager.handleConstraintChange();
     }
 
     private void handleCommand(CommandMessage message) {

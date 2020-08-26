@@ -12,7 +12,6 @@ import com.birbit.android.jobqueue.log.CustomLogger;
 import com.birbit.android.jobqueue.log.JqLog;
 import com.birbit.android.jobqueue.network.NetworkUtil;
 import com.birbit.android.jobqueue.network.NetworkUtilImpl;
-import com.birbit.android.jobqueue.scheduling.Scheduler;
 import com.birbit.android.jobqueue.timer.SystemTimer;
 import com.birbit.android.jobqueue.timer.Timer;
 import java.util.concurrent.ThreadFactory;
@@ -60,7 +59,6 @@ public class Configuration {
     NetworkUtil networkUtil;
     CustomLogger customLogger = new JqLog.ErrorLogger();
     Timer timer;
-    Scheduler scheduler;
     boolean inTestMode = false;
     boolean resetDelaysOnRestart = false;
     int threadPriority = DEFAULT_THREAD_PRIORITY;
@@ -132,11 +130,6 @@ public class Configuration {
 
     public boolean resetDelaysOnRestart() {
         return resetDelaysOnRestart;
-    }
-
-    @Nullable
-    public Scheduler getScheduler() {
-        return scheduler;
     }
 
     public int getThreadPriority() {
@@ -345,35 +338,6 @@ public class Configuration {
         }
 
         /**
-         * Assigns a scheduler that can be used to wake up the application when JobManager has jobs
-         * to execute. This is the integration point with the system
-         * {@link android.app.job.JobScheduler}.
-         * <p>
-         * <b>Batching</b>
-         * <p>
-         * By default, JobManager batches scheduling requests so that it will not call JobScheduler
-         * too many times. For instance, if a persistent job that requires network is added, when
-         * batching is enabled, JobManager creates the JobScheduler request with
-         * {@link com.birbit.android.jobqueue.BatchingScheduler#DEFAULT_BATCHING_PERIOD_IN_MS} delay.
-         * Any subsequent job request that has the same criteria will use the previous batching
-         * request. This way, JobManager can avoid making a JobScheduler request for every job.
-         * It will still execute the Job if it becomes available without waiting for the delay but
-         * if the application is killed, the JobScheduler will wait until the delay passes before
-         * waking up the application to consume the jobs.
-         *
-         * @param scheduler The scheduler to be used
-         * @param batch     Defines whether the scheduling requests should be batched or not.
-         *
-         * @return This Configuration for easy chaining
-         */
-        @NonNull
-        public Builder scheduler(@Nullable Scheduler scheduler, boolean batch) {
-            configuration.scheduler = scheduler;
-            configuration.batchSchedulerRequests = batch;
-            return this;
-        }
-
-        /**
          * Sets the priority for the threads of this manager. By default it is
          * {@link #DEFAULT_THREAD_PRIORITY}.
          * <p>
@@ -387,32 +351,6 @@ public class Configuration {
         public Builder consumerThreadPriority(int threadPriority) {
             configuration.threadPriority = threadPriority;
             return this;
-        }
-
-        /**
-         * Assigns a scheduler that can be used to wake up the application when JobManager has jobs
-         * to execute. This is the integration point with the system
-         * {@link android.app.job.JobScheduler}.
-         * <p>
-         * <b>Batching</b>
-         * <p>
-         * By default, JobManager batches scheduling requests so that it will not call JobScheduler
-         * too many times. For instance, if a persistent job that requires network is added, when
-         * batching is enabled, JobManager creates the JobScheduler request with
-         * {@link com.birbit.android.jobqueue.BatchingScheduler#DEFAULT_BATCHING_PERIOD_IN_MS} delay.
-         * Any subsequent job request that has the same criteria will use the previous batching
-         * request. This way, JobManager can avoid making a JobScheduler request for every job.
-         * It will still execute the Job if it becomes available without waiting for the delay but
-         * if the application is killed, the JobScheduler will wait until the delay passes before
-         * waking up the application to consume the jobs.
-         *
-         * @param scheduler The scheduler to be used
-         *
-         * @return This Configuration.Builder for easy chaining
-         */
-        @NonNull
-        public Builder scheduler(@Nullable Scheduler scheduler) {
-            return scheduler(scheduler, true);
         }
 
         /**

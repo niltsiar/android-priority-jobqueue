@@ -14,7 +14,6 @@ import com.birbit.android.jobqueue.messaging.message.CommandMessage;
 import com.birbit.android.jobqueue.messaging.message.JobConsumerIdleMessage;
 import com.birbit.android.jobqueue.messaging.message.RunJobMessage;
 import com.birbit.android.jobqueue.messaging.message.RunJobResultMessage;
-import com.birbit.android.jobqueue.scheduling.SchedulerConstraint;
 import com.birbit.android.jobqueue.timer.Timer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -61,19 +60,16 @@ class ConsumerManager {
 
     private final ThreadFactory threadFactory;
 
-    private final CopyOnWriteArrayList<Runnable> internalZeroConsumersListeners
-            = new CopyOnWriteArrayList<>();
+    private final CopyOnWriteArrayList<Runnable> internalZeroConsumersListeners = new CopyOnWriteArrayList<>();
 
-    ConsumerManager(JobManagerThread jobManagerThread, Timer timer, MessageFactory factory,
-            Configuration configuration) {
+    ConsumerManager(JobManagerThread jobManagerThread, Timer timer, MessageFactory factory, Configuration configuration) {
         this.jobManagerThread = jobManagerThread;
         this.timer = timer;
         this.factory = factory;
         this.loadFactor = configuration.getLoadFactor();
         this.minConsumerCount = configuration.getMinConsumerCount();
         this.maxConsumerCount = configuration.getMaxConsumerCount();
-        this.consumerKeepAliveNs = configuration.getConsumerKeepAlive() * 1000
-                * JobManagerThread.NS_PER_MS;
+        this.consumerKeepAliveNs = configuration.getConsumerKeepAlive() * 1000 * JobManagerThread.NS_PER_MS;
         this.threadPriority = configuration.getThreadPriority();
         this.threadFactory = configuration.getThreadFactory();
         runningJobHolders = new HashMap<>();
@@ -120,9 +116,7 @@ class ConsumerManager {
      * @return True if a consumer is poked or a new consumer is added
      */
     private boolean considerAddingConsumers(boolean pokeAllWaiting) {
-        JqLog.d("considering adding a new consumer. Should poke all waiting? %s isRunning? %s"
-                        + " waiting workers? %d"
-                , pokeAllWaiting, jobManagerThread.isRunning(), waitingConsumers.size());
+        JqLog.d("considering adding a new consumer. Should poke all waiting? %s isRunning? %s" + " waiting workers? %d", pokeAllWaiting, jobManagerThread.isRunning(), waitingConsumers.size());
         if (!jobManagerThread.isRunning()) {
             JqLog.d("jobqueue is not running, no consumers will be added");
             return false;
@@ -152,8 +146,7 @@ class ConsumerManager {
 
     private void addWorker() {
         JqLog.d("adding another consumer");
-        Consumer consumer = new Consumer(jobManagerThread.messageQueue,
-                new SafeMessageQueue(timer, factory, "consumer"), factory, timer);
+        Consumer consumer = new Consumer(jobManagerThread.messageQueue, new SafeMessageQueue(timer, factory, "consumer"), factory, timer);
         final Thread thread;
         if (threadFactory != null) {
             thread = threadFactory.newThread(consumer);
@@ -166,8 +159,7 @@ class ConsumerManager {
             thread.start();
         } catch (InternalError error) {
             // process is already dying, no reason to crash for this (and hide the real crash)
-            JqLog.e(error, "Cannot start a thread. Looks like app is shutting down."
-                    + "See issue #294 for details.");
+            JqLog.e(error, "Cannot start a thread. Looks like app is shutting down." + "See issue #294 for details.");
         }
     }
 
@@ -180,12 +172,9 @@ class ConsumerManager {
         final int remainingJobs = jobManagerThread.countRemainingReadyJobs();
         final int runningHolders = runningJobHolders.size();
 
-        boolean aboveLoadFactor = (workerCount * loadFactor < remainingJobs + runningHolders) ||
-                (workerCount < minConsumerCount && workerCount < remainingJobs + runningHolders);
-        JqLog.d("check above load factor: totalCons:%s minCons:%s maxConsCount: %s, loadFactor %s"
-                        + " remainingJobs: %s running holders: %s. isAbove:%s", workerCount,
-                minConsumerCount, maxConsumerCount, loadFactor, remainingJobs, runningHolders,
-                aboveLoadFactor);
+        boolean aboveLoadFactor = (workerCount * loadFactor < remainingJobs + runningHolders) || (workerCount < minConsumerCount && workerCount < remainingJobs + runningHolders);
+        JqLog.d("check above load factor: totalCons:%s minCons:%s maxConsCount: %s, loadFactor %s" + " remainingJobs: %s running holders: %s. isAbove:%s", workerCount, minConsumerCount,
+                maxConsumerCount, loadFactor, remainingJobs, runningHolders, aboveLoadFactor);
         return aboveLoadFactor;
     }
 
@@ -207,7 +196,8 @@ class ConsumerManager {
             runningJobGroups.add(nextJob.getGroupId());
             RunJobMessage runJobMessage = factory.obtain(RunJobMessage.class);
             runJobMessage.setJobHolder(nextJob);
-            runningJobHolders.put(nextJob.getJob().getId(), nextJob);
+            runningJobHolders.put(nextJob.getJob()
+                                         .getId(), nextJob);
             if (nextJob.getGroupId() != null) {
                 runningJobGroups.add(nextJob.getGroupId());
             }
@@ -218,8 +208,7 @@ class ConsumerManager {
             JqLog.v("keep alive: %s", keepAliveTimeout);
             final boolean tooMany = consumers.size() > minConsumerCount;
             boolean kill = !running || (tooMany && keepAliveTimeout < timer.nanoTime());
-            JqLog.v("Consumer idle, will kill? %s. isRunning: %s. too many? %s timeout: %s now: %s",
-                    kill, running, tooMany, keepAliveTimeout, timer.nanoTime() );
+            JqLog.v("Consumer idle, will kill? %s. isRunning: %s. too many? %s timeout: %s now: %s", kill, running, tooMany, keepAliveTimeout, timer.nanoTime());
             if (kill) {
                 CommandMessage command = factory.obtain(CommandMessage.class);
                 command.set(CommandMessage.QUIT);
@@ -264,8 +253,8 @@ class ConsumerManager {
     private Set<String> markJobsCancelled(TagConstraint constraint, String[] tags, boolean singleId) {
         Set<String> result = new HashSet<>();
         for (JobHolder holder : runningJobHolders.values()) {
-            JqLog.d("checking job tag %s. tags of job: %s", holder.getJob(),
-                    holder.getJob().getTags());
+            JqLog.d("checking job tag %s. tags of job: %s", holder.getJob(), holder.getJob()
+                                                                                   .getTags());
             if (!holder.hasTags()) {
                 continue;
             }
@@ -285,21 +274,18 @@ class ConsumerManager {
         return result;
     }
 
-    void handleRunJobResult(RunJobResultMessage message, JobHolder jobHolder,
-            RetryConstraint retryConstraint) {
+    void handleRunJobResult(RunJobResultMessage message, JobHolder jobHolder, RetryConstraint retryConstraint) {
         Consumer consumer = (Consumer) message.getWorker();
         if (!consumer.hasJob) {
             throw new IllegalStateException("this worker should not have a job");
         }
         consumer.hasJob = false;
-        runningJobHolders.remove(jobHolder.getJob().getId());
+        runningJobHolders.remove(jobHolder.getJob()
+                                          .getId());
         if (jobHolder.getGroupId() != null) {
             runningJobGroups.remove(jobHolder.getGroupId());
-            if (retryConstraint != null && retryConstraint.willApplyNewDelayToGroup()
-                    && retryConstraint.getNewDelayInMs() > 0) {
-                runningJobGroups.addGroupUntil(jobHolder.getGroupId(),
-                        timer.nanoTime()
-                                + retryConstraint.getNewDelayInMs() * JobManagerThread.NS_PER_MS);
+            if (retryConstraint != null && retryConstraint.willApplyNewDelayToGroup() && retryConstraint.getNewDelayInMs() > 0) {
+                runningJobGroups.addGroupUntil(jobHolder.getGroupId(), timer.nanoTime() + retryConstraint.getNewDelayInMs() * JobManagerThread.NS_PER_MS);
             }
         }
     }
@@ -310,15 +296,6 @@ class ConsumerManager {
 
     public int getWorkerCount() {
         return consumers.size();
-    }
-
-    public boolean hasJobsWithSchedulerConstraint(SchedulerConstraint constraint) {
-        for (JobHolder jobHolder : runningJobHolders.values()) {
-            if(constraint.getNetworkStatus() >= jobHolder.requiredNetworkType) {
-                return true;
-            }
-        }
-        return false;
     }
 
     public boolean areAllConsumersIdle() {
@@ -339,14 +316,12 @@ class ConsumerManager {
 
         volatile long lastJobCompleted;
 
-        static final MessagePredicate pokeMessagePredicate =
-                new MessagePredicate() {
-                    @Override
-                    public boolean onMessage(Message message) {
-                        return message.type == Type.COMMAND &&
-                                ((CommandMessage) message).getWhat() == CommandMessage.POKE;
-                    }
-                };
+        static final MessagePredicate pokeMessagePredicate = new MessagePredicate() {
+            @Override
+            public boolean onMessage(Message message) {
+                return message.type == Type.COMMAND && ((CommandMessage) message).getWhat() == CommandMessage.POKE;
+            }
+        };
 
         final MessageQueueConsumer queueConsumer = new MessageQueueConsumer() {
             @Override
@@ -376,8 +351,7 @@ class ConsumerManager {
             messageQueue.cancelMessages(pokeMessagePredicate);
         }
 
-        public Consumer(MessageQueue parentMessageQueue, SafeMessageQueue messageQueue,
-                MessageFactory factory, Timer timer) {
+        public Consumer(MessageQueue parentMessageQueue, SafeMessageQueue messageQueue, MessageFactory factory, Timer timer) {
             this.messageQueue = messageQueue;
             this.factory = factory;
             this.parentMessageQueue = parentMessageQueue;
@@ -403,7 +377,9 @@ class ConsumerManager {
         }
 
         private void handleRunJob(RunJobMessage message) {
-            JqLog.d("running job %s", message.getJobHolder().getClass().getSimpleName());
+            JqLog.d("running job %s", message.getJobHolder()
+                                             .getClass()
+                                             .getSimpleName());
             JobHolder jobHolder = message.getJobHolder();
             int result = jobHolder.safeRun(jobHolder.getRunCount(), timer);
             RunJobResultMessage resultMessage = factory.obtain(RunJobResultMessage.class);
