@@ -1,29 +1,22 @@
 package com.birbit.android.jobqueue.messaging;
 
 import com.birbit.android.jobqueue.messaging.message.CommandMessage;
-import com.birbit.android.jobqueue.testing.CleanupRule;
-import com.birbit.android.jobqueue.testing.ThreadDumpRule;
-import com.birbit.android.jobqueue.test.TestBase;
 import com.birbit.android.jobqueue.test.timer.MockTimer;
+import com.birbit.android.jobqueue.testing.ThreadDumpRule;
 import com.birbit.android.jobqueue.timer.Timer;
-
-import junit.framework.Assert;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import junit.framework.AssertionFailedError;
-
 import org.hamcrest.CoreMatchers;
-import org.hamcrest.Factory;
 import org.hamcrest.MatcherAssert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Timeout;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import static org.mockito.Mockito.*;
-import static org.hamcrest.MatcherAssert.*;
-
-
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 abstract public class MessageQueueTestBase<T extends MessageQueue> {
     @Rule public Timeout timeout = Timeout.seconds(60);

@@ -1,19 +1,37 @@
-buildscript {
-  repositories {
-    google()
-    jcenter()
-    mavenCentral()
-  }
+apply plugin: 'com.github.ben-manes.versions'
 
-  dependencies {
-    classpath 'com.android.tools.build:gradle:3.5.3'
-  }
+buildscript {
+    repositories {
+        google()
+        jcenter()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:4.0.1'
+        classpath 'com.github.ben-manes:gradle-versions-plugin:0.29.0'
+    }
 }
 
 allprojects {
-  repositories {
-    google()
-    mavenCentral()
-    jcenter()
-  }
+    repositories {
+        google()
+        mavenCentral()
+        jcenter()
+    }
+}
+
+//Configuration for gradle-versions-plugin to avoid non-release versions
+//to run: gradlew dependencyUpdates
+dependencyUpdates.resolutionStrategy {
+    componentSelection { rules ->
+        rules.all { ComponentSelection selection ->
+            boolean rejected = ['alpha', 'beta', 'rc', 'cr', 'm'].any { qualifier ->
+                selection.candidate.version ==~ /(?i).*[.-]${qualifier}[.\d-]*/
+            }
+            if (rejected) {
+                selection.reject('Release candidate')
+            }
+        }
+    }
 }
