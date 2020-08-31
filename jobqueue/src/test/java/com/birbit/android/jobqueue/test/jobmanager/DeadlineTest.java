@@ -37,7 +37,7 @@ public class DeadlineTest extends JobManagerTestBase {
         this.cancelOnDeadline = cancelOnDeadline;
     }
 
-    @ParameterizedRobolectricTestRunner.Parameters(name = "reqNetwork: {1} reqUnmetered: {2} delay: {3} cancelOnDeadline: {4}")
+    @ParameterizedRobolectricTestRunner.Parameters(name = "reqNetwork: {0} reqUnmetered: {1} delay: {2} cancelOnDeadline: {3}")
     public static List<Object[]> getParams() {
         List<Object[]> params = new ArrayList<>();
         for (long delay : new long[]{0, 10}) {

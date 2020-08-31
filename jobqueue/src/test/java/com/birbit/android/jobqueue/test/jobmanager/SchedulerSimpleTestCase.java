@@ -38,7 +38,7 @@ public class SchedulerSimpleTestCase extends JobManagerTestBase {
         this.deadline = deadline;
     }
 
-    @ParameterizedRobolectricTestRunner.Parameters(name = "reqNetwork: {1} reqUnmetered: {2} delay: {3} deadline: {4}")
+    @ParameterizedRobolectricTestRunner.Parameters(name = "reqNetwork: {0} reqUnmetered: {1} delay: {2} deadline: {3}")
     public static List<Object[]> getParams() {
         List<Object[]> params = new ArrayList<>();
         for (long delay : new long[]{0, 1000, JobManager.MIN_DELAY_TO_USE_SCHEDULER_IN_MS}) {

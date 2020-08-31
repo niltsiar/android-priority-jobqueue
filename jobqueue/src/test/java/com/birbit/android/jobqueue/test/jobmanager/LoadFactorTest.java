@@ -11,7 +11,6 @@ import com.birbit.android.jobqueue.Params;
 import com.birbit.android.jobqueue.QueueFactory;
 import com.birbit.android.jobqueue.config.Configuration;
 import com.birbit.android.jobqueue.inMemoryQueue.SimpleInMemoryPriorityQueue;
-import com.birbit.android.jobqueue.persistentQueue.sqlite.SqliteJobQueue;
 import com.birbit.android.jobqueue.test.jobs.DummyJob;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,21 +32,17 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class LoadFactorTest extends JobManagerTestBase {
     CountDownLatch startLatch = new CountDownLatch(1);
     CountDownLatch canEndLatch = new CountDownLatch(1);
+
     @SuppressLint("SLEEP_IN_CODE")
     @Test
-    public void testGoIdleIfNextJobCannotBeRunNow() throws InterruptedException {
+    public void testGoIdleIfNextJobCannotBeRunNow() throws
+                                                    InterruptedException {
         // see: https://github.com/yigit/android-priority-jobqueue/issues/262
         final AtomicInteger nextJobDelayCall = new AtomicInteger(1);
         JobManager jobManager = createJobManager(new Configuration.Builder(ApplicationProvider.getApplicationContext()).maxConsumerCount(3)
                                                                                                                        .minConsumerCount(1)
                                                                                                                        .loadFactor(3)
                                                                                                                        .queueFactory(new QueueFactory() {
-                                                                                                                           @Override
-                                                                                                                           public JobQueue createPersistentQueue(Configuration configuration,
-                                                                                                                                   long sessionId) {
-                                                                                                                               return new SqliteJobQueue(configuration, sessionId,
-                                                                                                                                                         new SqliteJobQueue.JavaSerializer());
-                                                                                                                           }
 
                                                                                                                            @Override
                                                                                                                            public JobQueue createNonPersistent(Configuration configuration,
@@ -58,10 +53,10 @@ public class LoadFactorTest extends JobManagerTestBase {
                                                                                                                                        nextJobDelayCall.incrementAndGet();
                                                                                                                                        return super.getNextJobDelayUntilNs(constraint);
                                                                                                                                    }
-                        };
-                    }
-                })
-                .timer(mockTimer));
+                                                                                                                               };
+                                                                                                                           }
+                                                                                                                       })
+                                                                                                                       .timer(mockTimer));
         final DummyJobWithStartEndLatch job1 = new DummyJobWithStartEndLatch(new Params(1));
         final DummyJobWithStartEndLatch job2 = new DummyJobWithStartEndLatch(new Params(1));
         jobManager.addJob(job1);
@@ -71,8 +66,7 @@ public class LoadFactorTest extends JobManagerTestBase {
         Thread.sleep(2000);
         int startCount = nextJobDelayCall.get();
         Thread.sleep(5000);
-        assertThat("JobManager should not query any more next jobs", nextJobDelayCall.get(),
-                is(startCount));
+        assertThat("JobManager should not query any more next jobs", nextJobDelayCall.get(), is(startCount));
         waitUntilAJobIsDone(jobManager, new WaitUntilCallback() {
             @Override
             public void run() {
@@ -90,8 +84,10 @@ public class LoadFactorTest extends JobManagerTestBase {
     public void clearLatches() {
         canEndLatch.countDown();
     }
+
     @Test
-    public void testLoadFactor() throws Exception {
+    public void testLoadFactor() throws
+                                 Exception {
         //test adding zillions of jobs from the same group and ensure no more than 1 thread is created
         int maxConsumerCount = 5;
         int minConsumerCount = 2;
@@ -110,26 +106,23 @@ public class LoadFactorTest extends JobManagerTestBase {
         onRunCount.acquire(totalJobCount);
         for (int i = 0; i < totalJobCount; i++) {
 
-            DummyJob job =
-                    new NeverEndingDummyJob(new Params((int)(Math.random() * 3)),runLock, semaphore) {
-                        @Override
-                        public void onRun() throws Throwable {
-                            onRunCount.release();
-                            super.onRun();
-                        }
-                    };
+            DummyJob job = new NeverEndingDummyJob(new Params((int) (Math.random() * 3)), runLock, semaphore) {
+                @Override
+                public void onRun() throws
+                                    Throwable {
+                    onRunCount.release();
+                    super.onRun();
+                }
+            };
             runningJobs.add(job);
             jobManager.addJob(job);
             final int wantedConsumers = (int) Math.ceil((i + 1f) / loadFactor);
-            final int expectedConsumerCount = Math.max(Math.min(i+1, minConsumerCount),
-                    Math.min(maxConsumerCount, wantedConsumers));
+            final int expectedConsumerCount = Math.max(Math.min(i + 1, minConsumerCount), Math.min(maxConsumerCount, wantedConsumers));
 
             if (prevConsumerCount != expectedConsumerCount) {
-                assertThat("waiting for another job to start",
-                        onRunCount.tryAcquire(1, 10, TimeUnit.SECONDS), is(true));
+                assertThat("waiting for another job to start", onRunCount.tryAcquire(1, 10, TimeUnit.SECONDS), is(true));
             }
-            assertThat("Consumer count should match expected value at " + (i+1) + " jobs",
-                    jobManager.getActiveConsumerCount(), equalTo(expectedConsumerCount));
+            assertThat("Consumer count should match expected value at " + (i + 1) + " jobs", jobManager.getActiveConsumerCount(), equalTo(expectedConsumerCount));
             prevConsumerCount = expectedConsumerCount;
         }
 
@@ -149,7 +142,8 @@ public class LoadFactorTest extends JobManagerTestBase {
         }
 
         @Override
-        public void onRun() throws Throwable {
+        public void onRun() throws
+                            Throwable {
             super.onRun();
             startLatch.countDown();
             canEndLatch.await();

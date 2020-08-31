@@ -1,10 +1,9 @@
 package com.birbit.android.jobqueue;
 
-import org.hamcrest.CoreMatchers;
-import org.hamcrest.MatcherAssert;
-
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.hamcrest.CoreMatchers;
+import org.hamcrest.MatcherAssert;
 
 public abstract class JobManagerThreadRunnable<T> {
     JobManager jobManager;
@@ -31,16 +30,11 @@ public abstract class JobManagerThreadRunnable<T> {
     protected void removeJob(JobHolder jobHolder) {
         assertRunning();
         jobManager.jobManagerThread.nonPersistentJobQueue.remove(jobHolder);
-        jobManager.jobManagerThread.persistentJobQueue.remove(jobHolder);
     }
 
     protected JobHolder findJobFromQueues(String id) {
         assertRunning();
-        JobHolder holder = jobManager.jobManagerThread.nonPersistentJobQueue.findJobById(id);
-        if (holder != null) {
-            return holder;
-        }
-        return jobManager.jobManagerThread.persistentJobQueue.findJobById(id);
+        return jobManager.jobManagerThread.nonPersistentJobQueue.findJobById(id);
     }
 
     public T run() throws Throwable {

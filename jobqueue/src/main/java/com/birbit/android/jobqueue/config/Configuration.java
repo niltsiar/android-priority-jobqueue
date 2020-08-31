@@ -12,7 +12,6 @@ import com.birbit.android.jobqueue.log.CustomLogger;
 import com.birbit.android.jobqueue.log.JqLog;
 import com.birbit.android.jobqueue.network.NetworkUtil;
 import com.birbit.android.jobqueue.network.NetworkUtilImpl;
-import com.birbit.android.jobqueue.persistentQueue.sqlite.SqliteJobQueue;
 import com.birbit.android.jobqueue.scheduling.Scheduler;
 import com.birbit.android.jobqueue.timer.SystemTimer;
 import com.birbit.android.jobqueue.timer.Timer;
@@ -217,37 +216,21 @@ public class Configuration {
         }
 
         /**
-         * JobManager needs one persistent and one non-persistent {@link JobQueue} to function.
-         * By default, it will use {@link SqliteJobQueue} and
+         * JobManager needs one non-persistent {@link JobQueue} to function.
+         * By default, it will use
          * {@link com.birbit.android.jobqueue.inMemoryQueue.SimpleInMemoryPriorityQueue}
          * You can provide your own implementation if they don't fit your needs. Make sure it passes all tests in
          * {@code JobQueueTestBase} to ensure it will work fine.
-         * @param queueFactory your custom queue factory.
          *
+         * @param queueFactory your custom queue factory.
          * @return This Configuration for easy chaining
          */
         @NonNull
         public Builder queueFactory(@Nullable QueueFactory queueFactory) {
             if(configuration.queueFactory != null && queueFactory != null) {
-                throw new RuntimeException("already set a queue factory. This might happen if"
-                        + "you've provided a custom job serializer");
+                throw new RuntimeException("already set a queue factory");
             }
             configuration.queueFactory = queueFactory;
-            return this;
-        }
-
-        /**
-         * convenient configuration to replace job serializer while using {@link SqliteJobQueue}
-         * queue for persistence. By default, it uses a
-         * {@link com.birbit.android.jobqueue.persistentQueue.sqlite.SqliteJobQueue.JavaSerializer}
-         * which will use default Java serialization.
-         * @param jobSerializer The serializer to be used to persist jobs.
-         *
-         * @return This Configuration for easy chaining
-         */
-        @NonNull
-        public Builder jobSerializer(@NonNull SqliteJobQueue.JobSerializer jobSerializer) {
-            configuration.queueFactory = new DefaultQueueFactory(jobSerializer);
             return this;
         }
 
@@ -352,8 +335,6 @@ public class Configuration {
 
         /**
          * Sets the JobManager in test mode. This information is passed to JobQueue's.
-         * If you are using default JobQueues, calling this method will cause {@link SqliteJobQueue}
-         * to use an in-memory database.
          *
          * @return This Configuration for easy chaining
          */
