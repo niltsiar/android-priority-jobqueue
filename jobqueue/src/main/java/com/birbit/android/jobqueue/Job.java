@@ -24,38 +24,32 @@ abstract public class Job implements Serializable {
     public static final int DEFAULT_RETRY_LIMIT = 20;
     static final String SINGLE_ID_TAG_PREFIX = "job-single-id:";
     // set either in constructor or by the JobHolder
-    /**
-     * package
-     **/
-    private transient String id;
+    /*package*/ private String id;
     // values set from params
     @NetworkUtil.NetworkStatus
-    transient int requiredNetworkType;
+    int requiredNetworkType;
     // values set after job is covered by a JobHolder
-    private transient String groupId;
-    private transient Set<String> readonlyTags;
+    private String groupId;
+    private Set<String> readonlyTags;
 
-    private transient int currentRunCount;
-    /**
-     * package
-     **/
-    transient int priority;
-    private final transient long delayInMs;
-    private final transient long deadlineInMs;
-    private final transient boolean cancelOnDeadline;
-    /*package*/ transient volatile boolean cancelled;
+    private int currentRunCount;
+    /*package*/ int priority;
+    private final long delayInMs;
+    private final long deadlineInMs;
+    private final boolean cancelOnDeadline;
+    /*package*/ volatile boolean cancelled;
 
     // set when job is loaded
-    private transient Context applicationContext;
+    private Context applicationContext;
 
-    private transient volatile boolean sealed;
+    private volatile boolean sealed;
 
     // set when job is loaded
-    private transient volatile boolean isDeadlineReached;
-
+    private volatile boolean isDeadlineReached;
 
     protected Job(Params params) {
-        this.id = UUID.randomUUID().toString();
+        this.id = UUID.randomUUID()
+                      .toString();
         this.requiredNetworkType = params.requiredNetworkType;
         this.groupId = params.getGroupId();
         this.priority = params.getPriority();
@@ -75,9 +69,7 @@ abstract public class Job implements Serializable {
             this.readonlyTags = Collections.unmodifiableSet(tags);
         }
         if (deadlineInMs > 0 && deadlineInMs < delayInMs) {
-            throw new IllegalArgumentException("deadline cannot be less than the delay. It" +
-                    " does not make sense. deadline:" + deadlineInMs + "," +
-                    "delay:" + delayInMs);
+            throw new IllegalArgumentException("deadline cannot be less than the delay. It" + " does not make sense. deadline:" + deadlineInMs + "," + "delay:" + delayInMs);
         }
 
     }
@@ -88,6 +80,7 @@ abstract public class Job implements Serializable {
 
     /**
      * used by {@link JobManager} to assign proper priority at the time job is added.
+     *
      * @return priority (higher = better)
      */
     public final int getPriority() {
@@ -97,6 +90,7 @@ abstract public class Job implements Serializable {
     /**
      * used by {@link JobManager} to assign proper delay at the time job is added.
      * This field is not persisted!
+     *
      * @return delay in ms
      */
     public final long getDelayInMs() {
@@ -113,10 +107,10 @@ abstract public class Job implements Serializable {
         return readonlyTags;
     }
 
-    private void writeObject(ObjectOutputStream oos) throws IOException {
+    private void writeObject(ObjectOutputStream oos) throws
+                                                     IOException {
         if (!sealed) {
-            throw new IllegalStateException("A job cannot be serialized w/o first being added into"
-                    + " a job manager.");
+            throw new IllegalStateException("A job cannot be serialized w/o first being added into" + " a job manager.");
         }
     }
 
@@ -161,19 +155,21 @@ abstract public class Job implements Serializable {
      *
      * @throws Throwable Can throw and exception which will mark job run as failed
      */
-    abstract public void onRun() throws Throwable;
+    abstract public void onRun() throws
+                                 Throwable;
 
     /**
      * Called when a job is cancelled.
+     *
      * @param cancelReason It is one of:
-     *                   <ul>
-     *                   <li>{@link CancelReason#REACHED_RETRY_LIMIT}</li>
-     *                   <li>{@link CancelReason#CANCELLED_VIA_SHOULD_RE_RUN}</li>
-     *                   <li>{@link CancelReason#CANCELLED_WHILE_RUNNING}</li>
-     *                   <li>{@link CancelReason#SINGLE_INSTANCE_WHILE_RUNNING}</li>
-     *                   <li>{@link CancelReason#SINGLE_INSTANCE_ID_QUEUED}</li>
-     *                   </ul>
-     * @param throwable The exception that was thrown from the last execution of {@link #onRun()}
+     *                     <ul>
+     *                     <li>{@link CancelReason#REACHED_RETRY_LIMIT}</li>
+     *                     <li>{@link CancelReason#CANCELLED_VIA_SHOULD_RE_RUN}</li>
+     *                     <li>{@link CancelReason#CANCELLED_WHILE_RUNNING}</li>
+     *                     <li>{@link CancelReason#SINGLE_INSTANCE_WHILE_RUNNING}</li>
+     *                     <li>{@link CancelReason#SINGLE_INSTANCE_ID_QUEUED}</li>
+     *                     </ul>
+     * @param throwable    The exception that was thrown from the last execution of {@link #onRun()}
      */
     abstract protected void onCancel(@CancelReason int cancelReason, @Nullable Throwable throwable);
 
@@ -191,10 +187,9 @@ abstract public class Job implements Serializable {
      * important (e.g. they use the same groupId), you should not change job's priority or add a
      * delay unless you really want to change their execution order.
      *
-     * @param throwable The exception that was thrown from {@link #onRun()}
-     * @param runCount The number of times this job run. Starts from 1.
+     * @param throwable   The exception that was thrown from {@link #onRun()}
+     * @param runCount    The number of times this job run. Starts from 1.
      * @param maxRunCount The max number of times this job can run. Decided by {@link #getRetryLimit()}
-     *
      * @return A {@link RetryConstraint} to decide whether this Job should be tried again or not and
      * if yes, whether we should add a delay or alter its priority. Returning null from this method
      * is equal to returning {@link RetryConstraint#RETRY}.
@@ -205,13 +200,13 @@ abstract public class Job implements Serializable {
      * Runs the job and catches any exception
      *
      * @param currentRunCount The current run count of the job
-     *
      * @return one of the RUN_RESULT ints
      */
     final int safeRun(JobHolder holder, int currentRunCount, Timer timer) {
         this.currentRunCount = currentRunCount;
         if (JqLog.isDebugEnabled()) {
-            JqLog.d("running job %s", this.getClass().getSimpleName());
+            JqLog.d("running job %s", this.getClass()
+                                          .getSimpleName());
         }
         boolean reRun = false;
         boolean failed = false;
@@ -226,13 +221,11 @@ abstract public class Job implements Serializable {
             failed = true;
             throwable = t;
             JqLog.e(t, "error while executing job %s", this);
-            cancelForDeadline = holder.shouldCancelOnDeadline()
-                    && holder.getDeadlineNs() <= timer.nanoTime();
+            cancelForDeadline = holder.shouldCancelOnDeadline() && holder.getDeadlineNs() <= timer.nanoTime();
             reRun = currentRunCount < getRetryLimit() && !cancelForDeadline;
-            if(reRun && !cancelled) {
+            if (reRun && !cancelled) {
                 try {
-                    RetryConstraint retryConstraint = shouldReRunOnThrowable(t, currentRunCount,
-                            getRetryLimit());
+                    RetryConstraint retryConstraint = shouldReRunOnThrowable(t, currentRunCount, getRetryLimit());
                     if (retryConstraint == null) {
                         retryConstraint = RetryConstraint.RETRY;
                     }
@@ -408,11 +401,17 @@ abstract public class Job implements Serializable {
         return requiredNetworkType >= NetworkUtil.UNMETERED;
     }
 
-    /**package**/ long getDeadlineInMs() {
+    /**
+     * package
+     **/
+    long getDeadlineInMs() {
         return deadlineInMs;
     }
 
-    /**package**/ boolean shouldCancelOnDeadline() {
+    /**
+     * package
+     **/
+    boolean shouldCancelOnDeadline() {
         return cancelOnDeadline;
     }
 }

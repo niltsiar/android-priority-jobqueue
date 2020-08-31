@@ -72,7 +72,7 @@ public class JobHolder {
      * What to do when deadline is reached
      */
     private final boolean cancelOnDeadline;
-    transient final Job job;
+    final Job job;
     protected final Set<String> tags;
     private volatile boolean cancelled;
     private volatile boolean cancelledSingleId;
