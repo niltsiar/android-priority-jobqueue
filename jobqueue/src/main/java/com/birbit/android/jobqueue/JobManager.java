@@ -2,9 +2,7 @@ package com.birbit.android.jobqueue;
 
 import android.os.Looper;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
-
 import com.birbit.android.jobqueue.callback.JobManagerCallback;
 import com.birbit.android.jobqueue.callback.JobManagerCallbackAdapter;
 import com.birbit.android.jobqueue.config.Configuration;
@@ -17,10 +15,6 @@ import com.birbit.android.jobqueue.messaging.message.AddJobMessage;
 import com.birbit.android.jobqueue.messaging.message.CancelMessage;
 import com.birbit.android.jobqueue.messaging.message.CommandMessage;
 import com.birbit.android.jobqueue.messaging.message.PublicQueryMessage;
-import com.birbit.android.jobqueue.messaging.message.SchedulerMessage;
-import com.birbit.android.jobqueue.scheduling.Scheduler;
-import com.birbit.android.jobqueue.scheduling.SchedulerConstraint;
-
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -43,17 +37,12 @@ public class JobManager {
     private final PriorityMessageQueue messageQueue;
     private final MessageFactory messageFactory;
     @SuppressWarnings("FieldCanBeLocal")
-    private Thread chefThread;
-    @Nullable
-    // this is the scheduler that was given in the configuration, not necessarily the scheduler
-    // used by the JobManagerThread.
-    private Scheduler scheduler;
+    private final Thread chefThread;
 
     /**
      * Creates a JobManager with the given configuration
      *
      * @param configuration The configuration to be used for the JobManager
-     *
      * @see com.birbit.android.jobqueue.config.Configuration.Builder
      */
     public JobManager(Configuration configuration) {
@@ -61,11 +50,6 @@ public class JobManager {
         messageQueue = new PriorityMessageQueue(configuration.getTimer(), messageFactory);
         jobManagerThread = new JobManagerThread(configuration, messageQueue, messageFactory);
         chefThread = new Thread(jobManagerThread, "job-manager");
-        if (configuration.getScheduler() != null) {
-            scheduler = configuration.getScheduler();
-            Scheduler.Callback callback = createSchedulerCallback();
-            configuration.getScheduler().init(configuration.getAppContext(), callback);
-        }
         chefThread.start();
     }
 
@@ -79,47 +63,6 @@ public class JobManager {
     @VisibleForTesting
     public Thread getJobManagerExecutionThread() {
         return chefThread;
-    }
-
-    /**
-     * The scheduler that was given to this JobManager when it was initialized.
-     * <p>
-     * The scheduler is used by the JobService to communicate with the JobManager.
-     *
-     * @return The scheduler that was given to this JobManager or null if it does not exist
-     */
-    @Nullable
-    public Scheduler getScheduler() {
-        return scheduler;
-    }
-
-    private Scheduler.Callback createSchedulerCallback() {
-        return new Scheduler.Callback() {
-            @Override
-            public boolean start(SchedulerConstraint constraint) {
-                dispatchSchedulerStart(constraint);
-                return true;
-            }
-
-            @Override
-            public boolean stop(SchedulerConstraint constraint) {
-                dispatchSchedulerStop(constraint);
-                // always return false to avoid blocking the queue
-                return false;
-            }
-        };
-    }
-
-    private void dispatchSchedulerStart(SchedulerConstraint constraint) {
-        SchedulerMessage message = messageFactory.obtain(SchedulerMessage.class);
-        message.set(SchedulerMessage.START, constraint);
-        messageQueue.post(message);
-    }
-
-    private void dispatchSchedulerStop(SchedulerConstraint constraint) {
-        SchedulerMessage message = messageFactory.obtain(SchedulerMessage.class);
-        message.set(PublicQueryMessage.START, constraint);
-        messageQueue.post(message);
     }
 
     /**
@@ -151,6 +94,7 @@ public class JobManager {
      * <p>
      * You cannot call this method on the main thread because it may potentially block it for a long
      * time.
+     *
      * @return The number of consumer threads
      */
     public int getActiveConsumerCount() {
@@ -215,7 +159,7 @@ public class JobManager {
         if (stop) {
             stop();
         }
-        if(jobManagerThread.consumerManager.getWorkerCount() == 0) {
+        if (jobManagerThread.consumerManager.getWorkerCount() == 0) {
             return;
         }
         try {
@@ -232,7 +176,6 @@ public class JobManager {
      * is added. You should always prefer this method over {@link #addJob(Job)}.
      *
      * @param job The Job to be added
-     *
      * @see #addJobInBackground(Job, AsyncAddCallback)
      * @see #addJob(Job)
      */
@@ -248,11 +191,10 @@ public class JobManager {
      * calling the callback.
      *
      * @param cancelCallback The callback to call once cancel is handled
-     * @param constraint The constraint to be used to match tags
-     * @param tags The list of tags
+     * @param constraint     The constraint to be used to match tags
+     * @param tags           The list of tags
      */
-    public void cancelJobsInBackground(final CancelResult.AsyncCancelCallback cancelCallback,
-            final TagConstraint constraint, final String... tags) {
+    public void cancelJobsInBackground(final CancelResult.AsyncCancelCallback cancelCallback, final TagConstraint constraint, final String... tags) {
         if (constraint == null) {
             throw new IllegalArgumentException("must provide a TagConstraint");
         }
@@ -277,7 +219,6 @@ public class JobManager {
      * inside any method of the JobManagerCallback.
      *
      * @param callback The callback to be removed
-     *
      * @return true if the callback is removed, false otherwise (if it did not exist).
      */
     public boolean removeCallback(JobManagerCallback callback) {
@@ -289,21 +230,18 @@ public class JobManager {
      * <p>
      * You cannot call this method on the main thread because it may potentially block it for a long
      * time.
-     *
+     * <p>
      * Even if you are not on the main thread, you should prefer using
      * {@link #addJobInBackground(Job)} or {@link #addJobInBackground(Job, AsyncAddCallback)} if
      * you don't need to block your thread until the Job is actually added.
      *
      * @param job The Job to be added
-     *
      * @see #addJobInBackground(Job)
      * @see #addJobInBackground(Job, AsyncAddCallback)
      */
     public void addJob(Job job) {
-        assertNotInMainThread("Cannot call this method on main thread. Use addJobInBackground "
-                + "instead.");
-        assertNotInJobManagerThread("Cannot call sync methods in JobManager's callback thread." +
-                "Use addJobInBackground instead");
+        assertNotInMainThread("Cannot call this method on main thread. Use addJobInBackground instead.");
+        assertNotInJobManagerThread("Cannot call sync methods in JobManager's callback thread. Use addJobInBackground instead");
         final CountDownLatch latch = new CountDownLatch(1);
         final String uuid = job.getId();
         addCallback(new JobManagerCallbackAdapter() {
@@ -327,7 +265,7 @@ public class JobManager {
      * Adds a Job in a background thread and calls the provided callback once the Job is added
      * to the JobManager.
      *
-     * @param job The Job to be added
+     * @param job      The Job to be added
      * @param callback The callback to be invoked once Job is saved in the JobManager's queues
      */
     public void addJobInBackground(Job job, final AsyncAddCallback callback) {
@@ -362,16 +300,13 @@ public class JobManager {
      * time.
      *
      * @param constraint The constraints to be used for tags
-     * @param tags The list of tags
-     *
+     * @param tags       The list of tags
      * @return A cancel result that has the list of cancelled and failed to cancel Jobs. A job
      * might fail to cancel if it already started before cancel request is handled.
      */
     public CancelResult cancelJobs(TagConstraint constraint, String... tags) {
-        assertNotInMainThread("Cannot call this method on main thread. Use cancelJobsInBackground"
-                + " instead");
-        assertNotInJobManagerThread("Cannot call this method on JobManager's thread. Use" +
-                "cancelJobsInBackground instead");
+        assertNotInMainThread("Cannot call this method on main thread. Use cancelJobsInBackground instead");
+        assertNotInJobManagerThread("Cannot call this method on JobManager's thread. Use cancelJobsInBackground instead");
         if (constraint == null) {
             throw new IllegalArgumentException("must provide a TagConstraint");
         }
@@ -418,6 +353,7 @@ public class JobManager {
      * <p>
      * You cannot call this method on the main thread because it may potentially block it for a long
      * time.
+     *
      * @return The number of jobs that are ready to be executed but waiting in the queue.
      */
     public int countReadyJobs() {
@@ -433,8 +369,8 @@ public class JobManager {
      * <p>
      * You cannot call this method on the main thread because it may potentially block it for a long
      * time.
-     * @param id The id of the job ({@link Job#getId()})
      *
+     * @param id The id of the job ({@link Job#getId()})
      * @return The current status of the Job
      */
     public JobStatus getJobStatus(String id) {
@@ -461,7 +397,8 @@ public class JobManager {
         new IntQueryFuture<>(messageQueue, message).getSafe();
     }
 
-    void internalRunInJobManagerThread(final Runnable runnable) throws Throwable {
+    void internalRunInJobManagerThread(final Runnable runnable) throws
+                                                                Throwable {
         final Throwable[] error = new Throwable[1];
         final PublicQueryMessage message = messageFactory.obtain(PublicQueryMessage.class);
         message.set(PublicQueryMessage.INTERNAL_RUNNABLE, null);
@@ -486,7 +423,8 @@ public class JobManager {
     }
 
     private void assertNotInMainThread(String message) {
-        if (Looper.getMainLooper().getThread() == Thread.currentThread()) {
+        if (Looper.getMainLooper()
+                  .getThread() == Thread.currentThread()) {
             throw new WrongThreadException(message);
         }
     }
@@ -498,8 +436,7 @@ public class JobManager {
     }
 
     @SuppressWarnings("WeakerAccess")
-    static class IntQueryFuture<T extends Message & IntCallback.MessageWithCallback>
-            implements Future<Integer>,IntCallback {
+    static class IntQueryFuture<T extends Message & IntCallback.MessageWithCallback> implements Future<Integer>, IntCallback {
         final MessageQueue messageQueue;
         volatile Integer result = null;
         final CountDownLatch latch = new CountDownLatch(1);
@@ -536,15 +473,19 @@ public class JobManager {
         }
 
         @Override
-        public Integer get() throws InterruptedException, ExecutionException {
+        public Integer get() throws
+                             InterruptedException,
+                             ExecutionException {
             messageQueue.post(message);
             latch.await();
             return result;
         }
 
         @Override
-        public Integer get(long timeout, @NonNull TimeUnit unit)
-                throws InterruptedException, ExecutionException, TimeoutException {
+        public Integer get(long timeout, @NonNull TimeUnit unit) throws
+                                                                 InterruptedException,
+                                                                 ExecutionException,
+                                                                 TimeoutException {
             messageQueue.post(message);
             latch.await(timeout, unit);
             return result;

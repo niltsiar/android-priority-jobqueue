@@ -3,7 +3,6 @@ apply plugin: 'com.android.library'
 dependencies {
     implementation 'androidx.annotation:annotation:1.1.0'
     implementation 'androidx.collection:collection:1.1.0'
-    implementation 'com.squareup.okio:okio:1.17.5'
 
     testImplementation 'junit:junit:4.13'
     testImplementation "org.robolectric:robolectric:4.4"

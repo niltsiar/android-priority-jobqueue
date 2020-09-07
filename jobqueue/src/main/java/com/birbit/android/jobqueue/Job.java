@@ -69,7 +69,7 @@ abstract public class Job implements Serializable {
             this.readonlyTags = Collections.unmodifiableSet(tags);
         }
         if (deadlineInMs > 0 && deadlineInMs < delayInMs) {
-            throw new IllegalArgumentException("deadline cannot be less than the delay. It" + " does not make sense. deadline:" + deadlineInMs + "," + "delay:" + delayInMs);
+            throw new IllegalArgumentException("deadline cannot be less than the delay. It does not make sense. deadline:" + deadlineInMs + ",delay:" + delayInMs);
         }
 
     }
@@ -110,7 +110,7 @@ abstract public class Job implements Serializable {
     private void writeObject(ObjectOutputStream oos) throws
                                                      IOException {
         if (!sealed) {
-            throw new IllegalStateException("A job cannot be serialized w/o first being added into" + " a job manager.");
+            throw new IllegalStateException("A job cannot be serialized w/o first being added into a job manager.");
         }
     }
 

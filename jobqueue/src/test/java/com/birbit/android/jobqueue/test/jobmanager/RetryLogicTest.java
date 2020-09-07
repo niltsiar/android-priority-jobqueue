@@ -99,8 +99,7 @@ public class RetryLogicTest extends JobManagerTestBase {
         onRunCallback = new Callback() {
             @Override
             public void on(Job job) {
-                assertThat("run count should match", ((RetryJob) job).getCurrentRunCount(),
-                        is(runCnt.incrementAndGet()));
+                assertThat("run count should match", job.getCurrentRunCount(), is(runCnt.incrementAndGet()));
             }
         };
         retryProvider = new RetryProvider() {
@@ -254,12 +253,10 @@ public class RetryLogicTest extends JobManagerTestBase {
         }
         long timeInBetween = TimeUnit.NANOSECONDS.toSeconds(
                 runTimes.get(1).second - runTimes.get(0).second);
-        assertThat("time between two runs should be at least 2 seconds. job 1 and 2" + ":"
-                + timeInBetween, 2 <= timeInBetween, is(true));
+        assertThat("time between two runs should be at least 2 seconds. job 1 and 2:" + timeInBetween, 2 <= timeInBetween, is(true));
         timeInBetween = TimeUnit.NANOSECONDS.toSeconds(
                 runTimes.get(3).second - runTimes.get(2).second);
-        assertThat("time between two runs should be at least 2 seconds. job 3 and 4" + ":"
-                + timeInBetween, 2 <= timeInBetween, is(true));
+        assertThat("time between two runs should be at least 2 seconds. job 3 and 4:" + timeInBetween, 2 <= timeInBetween, is(true));
         assertThat("the other job should run after others are cancelled",
                 dummyJobRunLatch.await(1, TimeUnit.SECONDS), is(true));
         // another job should just run
