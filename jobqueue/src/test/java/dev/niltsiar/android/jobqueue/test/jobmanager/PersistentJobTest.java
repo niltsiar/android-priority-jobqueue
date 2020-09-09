@@ -1,0 +1,40 @@
+package dev.niltsiar.android.jobqueue.test.jobmanager;
+
+import dev.niltsiar.android.jobqueue.JobManager;
+import dev.niltsiar.android.jobqueue.Params;
+import dev.niltsiar.android.jobqueue.test.jobs.DummyJob;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import org.hamcrest.MatcherAssert;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+
+@RunWith(RobolectricTestRunner.class)
+
+public class PersistentJobTest extends JobManagerTestBase {
+    //TEST parallel running
+    public static CountDownLatch persistentRunLatch = new CountDownLatch(1);
+
+    @Test
+    public void testPersistentJob() throws Exception {
+        JobManager jobManager = createJobManager();
+        jobManager.addJob(new DummyPersistentLatchJob());
+        persistentRunLatch.await(5, TimeUnit.SECONDS);
+        MatcherAssert.assertThat((int) persistentRunLatch.getCount(), equalTo(0));
+    }
+
+    protected static class DummyPersistentLatchJob extends DummyJob {
+
+        public DummyPersistentLatchJob() {
+            super(new Params(0));
+        }
+
+        @Override
+        public void onRun() throws Throwable {
+            PersistentJobTest.persistentRunLatch.countDown();
+        }
+    }
+}
